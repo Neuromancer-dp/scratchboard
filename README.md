@@ -33,13 +33,13 @@ everything is local. no accounts. no cloud. no telemetry.
 ## install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/scratchboard/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/neuromancer-dp/scratchboard/main/install.sh | bash
 ```
 
 or manually:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/scratchboard
+git clone https://github.com/neuromancer-dp/scratchboard
 cd scratchboard
 npm install
 ```
