@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bingus hub</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f0e0d;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.12);
+  --border-dash:rgba(180,130,70,0.38);--accent:rgba(180,130,70,1);
+  --accent-dim:rgba(180,130,70,0.8);--accent-faint:rgba(180,130,70,0.14);
+  --text:rgba(232,213,176,1);--text-dim:rgba(232,213,176,0.88);--text-faint:rgba(232,213,176,0.55);
+  --mono:'JetBrains Mono',monospace;--overlay:rgba(10,9,8,0.82);
+  --radius:5px;
+}
+body{font-family:var(--mono);background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;}
+
+#wallpaper-layer{position:fixed;inset:0;z-index:0;background:#0f0e0d;background-size:cover;background-position:center;transition:background-image 0.4s;}
+#wallpaper-layer::after{content:'';position:absolute;inset:0;background:var(--overlay);backdrop-filter:blur(3px);}
+
+/* SIDEBAR */
+#sidebar{position:relative;z-index:10;width:58px;background:rgba(0,0,0,0.32);border-right:1px dashed var(--border-dash);display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;gap:3px;flex-shrink:0;}
+.nav-btn{width:42px;height:42px;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--text-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all 0.18s;position:relative;}
+.nav-btn:hover{background:var(--bg2);border-color:var(--border-dash);color:var(--text);transform:translateY(-1px);}
+.nav-btn.active{background:var(--accent-faint);border-color:var(--border-dash);color:var(--accent);}
+.nav-btn:active{transform:scale(0.92);}
+.nav-spacer{flex:1;}
+#version-label{font-size:9px;color:var(--text-faint);letter-spacing:0.04em;text-align:center;padding:6px 4px;line-height:1.6;opacity:0.65;}
+
+/* MAIN */
+#main{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+
+/* TOPBAR */
+#topbar{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:9px 18px;border-bottom:1px dashed var(--border-dash);flex-shrink:0;}
+#topbar-left{display:flex;align-items:center;gap:10px;min-width:140px;}
+#avatar-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border-dash);background:var(--accent-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent-dim);overflow:hidden;flex-shrink:0;transition:all 0.18s;}
+#avatar-btn:hover{border-color:var(--accent-dim);}
+#avatar-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+#username-display{font-size:11px;color:var(--text-dim);letter-spacing:0.07em;cursor:pointer;}
+#topbar-center{text-align:center;flex:1;}
+#clock{font-size:22px;font-weight:300;color:var(--text);letter-spacing:0.06em;line-height:1;}
+#dateline{font-size:9px;color:var(--text-faint);letter-spacing:0.1em;margin-top:2px;}
+#topbar-right{display:flex;align-items:center;gap:5px;min-width:140px;justify-content:flex-end;}
+.tb-btn{background:var(--bg2);border:1px dashed var(--border-dash);border-radius:4px;color:var(--accent-dim);font-family:var(--mono);font-size:9px;padding:4px 9px;cursor:pointer;letter-spacing:0.04em;transition:all 0.18s;white-space:nowrap;appearance:none;-webkit-appearance:none;}
+.tb-btn:hover{color:var(--accent);border-color:var(--accent-dim);}
+#project-indicator{font-size:9px;color:var(--accent-dim);border:1px dashed var(--border-dash);border-radius:4px;padding:4px 9px;cursor:pointer;background:var(--bg2);white-space:nowrap;transition:all 0.18s;max-width:130px;overflow:hidden;text-overflow:ellipsis;}
+
+/* GLADOS — fixed, never overlaps UI */
+
+
+/* PAGE TRANSITIONS */
+.page{display:none;flex:1;overflow:hidden;min-height:0;opacity:0;transition:opacity 0.15s ease;}
+.page.active{display:flex;opacity:1;}
+
+/* HUB */
+#page-hub{flex-direction:row;}
+#hub-left{display:flex;flex-direction:column;padding:14px 16px;gap:12px;overflow-y:auto;flex:1;border-right:1px dashed rgba(180,130,70,0.1);}
+#hub-left::-webkit-scrollbar{width:3px;}
+#hub-left::-webkit-scrollbar-thumb{background:var(--border-dash);}
+#hub-right{display:flex;flex-direction:column;padding:14px 16px;gap:0;width:340px;min-height:0;max-height:100%;overflow:hidden;flex-shrink:0;}
+
+.sec-label{font-size:9px;color:var(--accent-dim);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:'';flex:1;height:1px;background:rgba(180,130,70,0.08);}
+
+/* QUICK CAPTURE */
+#qc-row{display:flex;gap:0;align-items:stretch;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color 0.18s;}
+#qc-row:focus-within{border-color:var(--border-dash);}
+#qc-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:11px;padding:8px 12px;}
+#qc-input::placeholder{color:rgba(255,255,255,0.18);}
+#qc-btn{background:transparent;border:none;border-left:1px dashed rgba(180,130,70,0.2);color:var(--accent-dim);font-family:var(--mono);font-size:9px;padding:0 12px;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+#qc-btn:hover{color:var(--accent);}
+
+#captures-list{display:flex;flex-direction:column;gap:4px;margin-top:5px;}
+.capture-item{display:flex;align-items:center;gap:8px;padding:5px 10px;background:var(--bg2);border:1px dashed var(--border);border-radius:4px;animation:fadeSlideIn 0.2s ease;}
+.capture-text{flex:1;font-size:11px;color:var(--text-dim);}
+.capture-promote{font-size:8px;color:var(--accent-dim);border:1px solid rgba(180,130,70,0.2);border-radius:3px;padding:2px 6px;cursor:pointer;background:transparent;font-family:var(--mono);white-space:nowrap;transition:all 0.15s;}
+.capture-promote:hover{color:var(--accent);border-color:var(--accent-dim);}
+.capture-del{font-size:11px;color:var(--text-faint);cursor:pointer;opacity:0.4;transition:opacity 0.15s;}
+.capture-del:hover{opacity:1;color:rgba(200,80,80,0.7);}
+
+/* PINNED */
+#pinned-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;min-height:68px;align-items:flex-start;}
+#pinned-strip::-webkit-scrollbar{height:2px;}
+#pinned-strip::-webkit-scrollbar-thumb{background:var(--border-dash);}
+.pinned-card{flex-shrink:0;width:148px;border-radius:var(--radius);padding:8px 10px;position:relative;animation:fadeSlideIn 0.2s ease;transition:transform 0.15s;}
+.pinned-card:hover{transform:translateY(-2px);}
+.pinned-card-title{font-size:10px;color:var(--text);font-weight:500;margin-bottom:3px;padding-right:14px;line-height:1.4;}
+.pinned-card-body{font-size:9px;color:var(--text-faint);line-height:1.5;}
+.pin-x{position:absolute;top:6px;right:7px;font-size:11px;cursor:pointer;opacity:0.4;transition:opacity 0.15s;}
+.pin-x:hover{opacity:1;}
+
+/* CARDS GRID */
+.date-group-label{font-size:9px;color:var(--accent-dim);letter-spacing:0.12em;text-transform:uppercase;padding:8px 0 4px;opacity:0.65;grid-column:1/-1;}
+#feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding-bottom:60px;align-content:start;align-items:start;}
+
+.feed-card{border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform 0.18s,box-shadow 0.18s;animation:fadeSlideIn 0.25s ease;}
+.feed-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.feed-card-inner{padding:12px 13px;}
+.feed-card-title{font-size:11px;font-weight:500;line-height:1.4;margin-bottom:5px;}
+.feed-card-time{font-size:8px;opacity:0.55;margin-bottom:6px;}
+.feed-card-body{font-size:10px;line-height:1.75;opacity:0.8;display:none;white-space:pre-line;margin-bottom:8px;}
+.feed-card.expanded .feed-card-body{display:block;}
+.feed-card-expand{font-size:9px;opacity:0.45;transition:opacity 0.15s;}
+.feed-card:hover .feed-card-expand{opacity:0.8;}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
+.tag{font-size:8px;padding:2px 6px;border-radius:3px;opacity:0.85;}
+.feed-card-actions{display:none;gap:5px;margin-top:8px;}
+.feed-card.expanded .feed-card-actions{display:flex;}
+
+/* CARD COLOR VARIANTS */
+.card-amber{background:rgba(180,130,70,0.12);border:1px solid rgba(180,130,70,0.25);}
+.card-amber .feed-card-title,.card-amber .feed-card-expand{color:rgba(232,213,176,1);}
+.card-amber .tag{background:rgba(180,130,70,0.15);color:rgba(232,200,140,0.9);border:none;}
+.card-purple{background:rgba(140,100,200,0.12);border:1px solid rgba(140,100,200,0.25);}
+.card-purple .feed-card-title,.card-purple .feed-card-expand{color:rgba(210,185,240,1);}
+.card-purple .tag{background:rgba(140,100,200,0.15);color:rgba(200,170,240,0.9);border:none;}
+.card-teal{background:rgba(60,160,140,0.12);border:1px solid rgba(60,160,140,0.25);}
+.card-teal .feed-card-title,.card-teal .feed-card-expand{color:rgba(160,220,210,1);}
+.card-teal .tag{background:rgba(60,160,140,0.15);color:rgba(140,210,195,0.9);border:none;}
+.card-blue{background:rgba(80,130,200,0.12);border:1px solid rgba(80,130,200,0.25);}
+.card-blue .feed-card-title,.card-blue .feed-card-expand{color:rgba(170,200,240,1);}
+.card-blue .tag{background:rgba(80,130,200,0.15);color:rgba(160,195,240,0.9);border:none;}
+.card-rose{background:rgba(200,90,100,0.12);border:1px solid rgba(200,90,100,0.25);}
+.card-rose .feed-card-title,.card-rose .feed-card-expand{color:rgba(240,185,190,1);}
+.card-rose .tag{background:rgba(200,90,100,0.15);color:rgba(240,180,185,0.9);border:none;}
+.card-slate{background:rgba(100,110,125,0.12);border:1px solid rgba(100,110,125,0.25);}
+.card-slate .feed-card-title,.card-slate .feed-card-expand{color:rgba(200,205,215,1);}
+.card-slate .tag{background:rgba(100,110,125,0.15);color:rgba(195,200,210,0.9);border:none;}
+.feed-card-body,.feed-card-time{color:inherit;opacity:0.7;}
+
+/* CHAT PANEL */
+#chat-section-label{font-size:9px;color:var(--accent-dim);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+#chat-section-label::after{content:'';flex:1;height:1px;background:rgba(180,130,70,0.08);}
+#chat-panel{flex:1;display:flex;flex-direction:column;background:var(--bg2);border:1px dashed var(--border);border-radius:6px;overflow:hidden;min-height:0;}
+#chat-messages{flex:1;overflow-y:scroll;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:0;max-height:100%;}
+#chat-messages::-webkit-scrollbar{width:3px;}
+#chat-messages::-webkit-scrollbar-thumb{background:var(--border-dash);}
+.msg{font-size:11px;line-height:1.75;animation:fadeSlideIn 0.2s ease;}
+.msg-meta{font-size:9px;margin-bottom:3px;letter-spacing:0.07em;}
+.msg-bingus .msg-meta{color:rgba(180,130,70,0.45);}
+.msg-bingus .msg-text{color:rgba(205,165,95,1);}
+.msg-user{text-align:right;}
+.msg-user .msg-meta{color:var(--text-faint);}
+.msg-user .msg-text{color:var(--text-dim);}
+.msg-system .msg-text{color:var(--text-faint);font-size:10px;font-style:italic;text-align:center;padding:3px 0;}
+#typing-indicator{font-size:10px;color:rgba(180,130,70,0.5);padding:4px 12px;display:none;flex-shrink:0;}
+
+#attach-preview{display:none;padding:5px 12px;border-top:1px dashed rgba(255,255,255,0.05);background:rgba(0,0,0,0.1);font-size:10px;color:var(--text-faint);cursor:pointer;flex-shrink:0;transition:color 0.15s;}
+#attach-preview:hover{color:rgba(200,80,80,0.7);}
+
+/* CHAT INPUT — clean, no resize arrows */
+#chat-input-area{border-top:1px dashed rgba(255,255,255,0.07);display:flex;flex-shrink:0;align-items:stretch;min-height:44px;}
+#attach-btn{background:transparent;border:none;border-right:1px dashed rgba(255,255,255,0.06);color:var(--text-faint);font-size:16px;width:38px;cursor:pointer;transition:color 0.18s;position:relative;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+#attach-btn:hover{color:var(--accent-dim);}
+#attach-file{position:absolute;inset:0;opacity:0;cursor:pointer;}
+#chat-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:11px;padding:10px 12px;resize:none;overflow:hidden;line-height:1.5;height:44px;}
+#chat-input::placeholder{color:rgba(255,255,255,0.14);}
+#stop-btn{display:none;background:rgba(200,80,80,0.07);border:none;border-left:1px dashed rgba(200,80,80,0.2);color:rgba(200,80,80,0.7);font-family:var(--mono);font-size:10px;padding:0 11px;cursor:pointer;flex-shrink:0;transition:color 0.15s;}
+#stop-btn:hover{color:rgba(220,100,100,1);}
+#send-btn{background:rgba(180,130,70,0.07);border:none;border-left:1px dashed rgba(180,130,70,0.18);color:var(--accent-dim);font-family:var(--mono);font-size:10px;padding:0 13px;cursor:pointer;flex-shrink:0;transition:color 0.15s;}
+#send-btn:hover{color:var(--accent);}
+#end-btn{background:transparent;border:none;border-left:1px dashed rgba(255,255,255,0.05);color:var(--text-faint);font-family:var(--mono);font-size:10px;padding:0 11px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:color 0.15s;}
+#end-btn:hover{color:var(--text-dim);}
+
+/* CHATS PAGE */
+#page-chats{flex-direction:column;padding:18px 22px;overflow-y:auto;gap:14px;}
+#page-chats::-webkit-scrollbar{width:3px;}
+#page-chats::-webkit-scrollbar-thumb{background:var(--border-dash);}
+.page-title{font-size:10px;color:var(--accent-dim);letter-spacing:0.2em;text-transform:uppercase;}
+#chats-filter{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{font-size:9px;padding:3px 9px;border:1px dashed var(--border);border-radius:4px;background:transparent;color:var(--text-faint);font-family:var(--mono);cursor:pointer;letter-spacing:0.04em;transition:all 0.15s;}
+.filter-btn.active,.filter-btn:hover{border-color:var(--border-dash);color:var(--accent-dim);}
+#chats-list{display:flex;flex-direction:column;gap:5px;}
+.chat-date-group{font-size:9px;color:var(--accent-dim);letter-spacing:0.12em;text-transform:uppercase;padding:10px 0 4px;opacity:0.65;}
+.chat-entry{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;cursor:pointer;transition:all 0.18s;animation:fadeSlideIn 0.2s ease;}
+.chat-entry:hover{border-color:rgba(255,255,255,0.2);transform:translateX(2px);}
+.chat-entry-time{font-size:9px;color:var(--accent-dim);margin-bottom:3px;}
+.chat-entry-summary{font-size:10px;color:var(--text-dim);line-height:1.6;}
+.chat-entry-project{font-size:8px;color:var(--text-faint);margin-top:4px;}
+
+/* PROJECTS PAGE */
+#page-projects{flex-direction:column;padding:18px 22px;overflow-y:auto;gap:0;}
+#page-projects::-webkit-scrollbar{width:3px;}
+#page-projects::-webkit-scrollbar-thumb{background:var(--border-dash);}
+#projects-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+
+/* PROJECT DETAIL VIEW */
+#project-list-view{display:flex;flex-direction:column;gap:10px;}
+#project-detail-view{display:none;flex-direction:column;gap:0;flex:1;min-height:0;}
+#project-detail-view.visible{display:flex;}
+#project-list-view.hidden{display:none;}
+
+#project-detail-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-shrink:0;}
+#project-back-btn{font-size:10px;color:var(--text-faint);cursor:pointer;padding:4px 0;transition:color 0.15s;}
+#project-back-btn:hover{color:var(--accent-dim);}
+#project-detail-name{font-size:14px;color:var(--text);font-weight:500;}
+#project-detail-body{display:grid;grid-template-columns:1fr 300px;flex:1;overflow:hidden;min-height:0;gap:14px;}
+#project-cards-col{overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;align-content:start;padding-right:8px;}
+#project-cards-col::-webkit-scrollbar{width:3px;}
+#project-cards-col::-webkit-scrollbar-thumb{background:var(--border-dash);}
+#project-chat-col{display:flex;flex-direction:column;min-height:0;border-left:1px dashed rgba(180,130,70,0.1);padding-left:14px;}
+#project-chat-messages{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:0;background:var(--bg2);border:1px dashed var(--border);border-radius:6px 6px 0 0;}
+#project-chat-messages::-webkit-scrollbar{width:3px;}
+#project-chat-messages::-webkit-scrollbar-thumb{background:var(--border-dash);}
+#project-typing{font-size:10px;color:rgba(180,130,70,0.5);padding:4px 10px;display:none;background:var(--bg2);border-left:1px dashed var(--border);border-right:1px dashed var(--border);flex-shrink:0;}
+#project-chat-input-area{display:flex;flex-shrink:0;border:1px dashed var(--border);border-top:none;border-radius:0 0 6px 6px;overflow:hidden;}
+#project-chat-input{flex:1;background:var(--bg2);border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:11px;padding:9px 12px;resize:none;height:40px;overflow:hidden;}
+#project-chat-input::placeholder{color:rgba(255,255,255,0.14);}
+#project-stop-btn{display:none;background:rgba(200,80,80,0.07);border:none;border-left:1px dashed rgba(200,80,80,0.2);color:rgba(200,80,80,0.7);font-family:var(--mono);font-size:10px;padding:0 10px;cursor:pointer;flex-shrink:0;}
+#project-send-btn{background:rgba(180,130,70,0.07);border:none;border-left:1px dashed rgba(180,130,70,0.18);color:var(--accent-dim);font-family:var(--mono);font-size:10px;padding:0 12px;cursor:pointer;flex-shrink:0;transition:color 0.15s;}
+#project-send-btn:hover{color:var(--accent);}
+#project-end-btn{background:transparent;border:none;border-left:1px dashed rgba(255,255,255,0.05);color:var(--text-faint);font-family:var(--mono);font-size:10px;padding:0 10px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:color 0.15s;}
+#project-end-btn:hover{color:var(--text-dim);}
+
+.project-card-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);transition:all 0.18s;animation:fadeSlideIn 0.2s ease;}
+.project-card-item:hover{border-color:rgba(255,255,255,0.2);transform:translateY(-2px);}
+
+.project-list-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:13px 15px;transition:all 0.18s;cursor:pointer;}
+.project-list-card:hover{border-color:rgba(255,255,255,0.2);}
+.project-list-card.active-project{border-color:var(--accent-dim);}
+.project-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:middle;}
+.project-name{font-size:12px;color:var(--text);font-weight:500;margin-bottom:5px;}
+.project-meta{font-size:9px;color:var(--text-faint);line-height:1.6;}
+.project-actions{display:flex;gap:5px;margin-top:9px;}
+.proj-btn{font-size:9px;color:var(--text-faint);border:1px solid var(--border);border-radius:3px;padding:3px 7px;cursor:pointer;background:transparent;font-family:var(--mono);transition:all 0.15s;}
+.proj-btn:hover,.proj-btn.primary{color:var(--accent-dim);border-color:var(--border-dash);}
+
+
+/* JOURNAL REDESIGN */
+#page-journal{flex-direction:column;}
+#journal-main{display:flex;flex-direction:column;padding:16px 20px;gap:14px;overflow-y:auto;flex:1;}
+#journal-main::-webkit-scrollbar{width:3px;}
+#journal-main::-webkit-scrollbar-thumb{background:var(--border-dash);}
+#journal-compose{display:flex;flex-direction:column;gap:8px;border:1px dashed var(--border-dash);border-radius:6px;padding:14px;background:var(--bg2);}
+#journal-textarea{background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:12px;resize:none;line-height:1.9;min-height:80px;width:100%;}
+#journal-textarea::placeholder{color:rgba(255,255,255,0.12);}
+#journal-compose-actions{display:flex;justify-content:flex-end;}
+#journal-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-content:start;padding-bottom:40px;}
+.journal-card{border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform 0.18s,box-shadow 0.18s;animation:fadeSlideIn 0.25s ease;border-left:3px solid var(--accent-dim);}
+.journal-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.25);}
+.journal-card-inner{padding:12px 14px;background:var(--bg2);}
+.journal-card-date{font-size:9px;color:var(--accent-dim);letter-spacing:0.1em;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.journal-card-body{font-size:11px;color:var(--text-dim);line-height:1.75;margin-bottom:8px;}
+.journal-card-body.collapsed{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.journal-card-thinks{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border-dash);font-size:10px;color:var(--accent-dim);font-style:italic;line-height:1.6;display:none;}
+.journal-card-thinks.visible{display:block;}
+.journal-card-thinks-label{font-size:8px;color:var(--accent-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:4px;opacity:0.7;}
+.journal-card-actions{display:flex;gap:6px;margin-top:8px;}
+/* JOURNAL */
+#page-journal{flex-direction:row;}
+#journal-list{width:210px;border-right:1px dashed rgba(180,130,70,0.12);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+#journal-list-header{padding:12px 12px 9px;border-bottom:1px dashed var(--border);flex-shrink:0;display:flex;justify-content:space-between;align-items:center;}
+#journal-entries{flex:1;overflow-y:auto;padding:6px;}
+#journal-entries::-webkit-scrollbar{width:3px;}
+#journal-entries::-webkit-scrollbar-thumb{background:var(--border-dash);}
+.journal-entry-item{padding:7px 9px;border-radius:4px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;transition:all 0.18s;}
+.journal-entry-item:hover,.journal-entry-item.active{background:var(--bg2);border-color:var(--border-dash);}
+.jei-date{font-size:9px;color:var(--accent-dim);letter-spacing:0.07em;margin-bottom:2px;}
+.jei-preview{font-size:10px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#journal-editor{flex:1;display:flex;flex-direction:column;padding:16px 20px;gap:12px;overflow:hidden;min-height:0;}
+#journal-editor-header{display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+#journal-date-display{font-size:10px;color:var(--accent-dim);letter-spacing:0.1em;}
+#journal-editor-actions{display:flex;gap:6px;}
+#journal-textarea{flex:1;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:12px;padding:14px;resize:none;outline:none;line-height:1.9;min-height:0;transition:border-color 0.18s;}
+#journal-textarea:focus{border-color:var(--border-dash);}
+#journal-textarea::placeholder{color:rgba(255,255,255,0.1);}
+#bingus-thinks-card{background:var(--accent-faint);border:1px dashed var(--border-dash);border-radius:var(--radius);padding:11px 13px;flex-shrink:0;}
+#bingus-thinks-label{font-size:9px;color:var(--accent-dim);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:5px;}
+#bingus-thinks-text{font-size:11px;color:rgba(205,165,95,0.9);line-height:1.7;font-style:italic;}
+
+/* SETTINGS */
+#page-settings{flex-direction:column;padding:18px 22px;overflow-y:auto;gap:0;}
+#page-settings::-webkit-scrollbar{width:3px;}
+#page-settings::-webkit-scrollbar-thumb{background:var(--border-dash);}
+.settings-section{margin-bottom:22px;}
+.settings-section-title{font-size:9px;color:var(--accent-dim);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px dashed rgba(180,130,70,0.1);}
+.setting-row{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,0.04);gap:16px;}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:11px;color:var(--text-dim);}
+.setting-sub{font-size:9px;color:var(--text-faint);margin-top:2px;}
+.memory-item,.ctx-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:9px 12px;margin-bottom:5px;animation:fadeSlideIn 0.2s ease;}
+.item-title{font-size:10px;color:var(--text);font-weight:500;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.item-content{font-size:10px;color:var(--text-faint);line-height:1.6;}
+.item-meta{font-size:8px;color:var(--accent-dim);opacity:0.5;margin-top:3px;}
+#tinker-section{display:none;}
+#tinker-section.visible{display:block;}
+
+/* SHARED */
+.form-input{background:var(--bg2);border:1px dashed var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;transition:border-color 0.18s;}
+.form-input:focus{border-color:var(--border-dash);}
+.form-input.wide{width:100%;}
+.form-textarea{background:var(--bg2);border:1px dashed var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:9px 11px;outline:none;resize:none;line-height:1.8;width:100%;transition:border-color 0.18s;}
+.form-textarea:focus{border-color:var(--border-dash);}
+.form-label{font-size:9px;color:var(--accent-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:5px;display:block;}
+.form-field{margin-bottom:12px;}
+.btn{background:var(--bg2);border:1px dashed var(--border-dash);border-radius:4px;color:var(--accent-dim);font-family:var(--mono);font-size:10px;padding:6px 14px;cursor:pointer;letter-spacing:0.04em;transition:all 0.18s;}
+.btn:hover{border-color:var(--accent-dim);color:var(--accent);}
+.btn.danger{border-color:rgba(200,80,80,0.3);color:rgba(200,80,80,0.6);}
+.btn.danger:hover{border-color:rgba(200,80,80,0.7);color:rgba(220,100,100,1);}
+.btn.small{font-size:9px;padding:3px 8px;}
+.divider{height:1px;background:rgba(180,130,70,0.08);margin:14px 0;}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(8,7,6,0.88);align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:#131110;border:1px solid rgba(180,130,70,0.2);border-radius:8px;padding:22px 26px;width:500px;max-height:85vh;overflow-y:auto;animation:fadeSlideIn 0.2s ease;}
+.modal-box::-webkit-scrollbar{width:3px;}
+.modal-box::-webkit-scrollbar-thumb{background:var(--border-dash);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.modal-title{font-size:10px;color:var(--accent-dim);letter-spacing:0.16em;text-transform:uppercase;}
+.modal-close{font-size:9px;color:var(--text-faint);cursor:pointer;transition:color 0.15s;}
+.modal-close:hover{color:var(--text-dim);}
+.empty-state{font-size:10px;color:var(--text-faint);padding:10px 0;}
+
+/* USER PANEL */
+#user-panel{display:none;position:fixed;inset:0;z-index:100;background:rgba(8,7,6,0.85);align-items:center;justify-content:center;}
+#user-panel.open{display:flex;}
+#user-panel-inner{background:#131110;border:1px solid rgba(180,130,70,0.2);border-radius:8px;padding:24px 28px;width:400px;max-height:80vh;overflow-y:auto;animation:fadeSlideIn 0.2s ease;}
+#user-panel-inner::-webkit-scrollbar{width:3px;}
+#user-panel-inner::-webkit-scrollbar-thumb{background:var(--border-dash);}
+.panel-avatar-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+#panel-avatar{width:52px;height:52px;border-radius:50%;border:1px solid var(--border-dash);background:var(--accent-faint);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--accent-dim);overflow:hidden;cursor:pointer;position:relative;flex-shrink:0;transition:border-color 0.18s;}
+#panel-avatar:hover{border-color:var(--accent-dim);}
+#panel-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+#panel-avatar-file{position:absolute;inset:0;opacity:0;cursor:pointer;}
+
+/* MARKDOWN IN CARDS */
+.md-body h1,.md-body h2,.md-body h3{font-size:11px;color:var(--text);font-weight:500;margin:6px 0 3px;}
+.md-body p{margin-bottom:6px;font-size:10px;line-height:1.75;}
+.md-body ul,.md-body ol{padding-left:14px;margin-bottom:6px;font-size:10px;line-height:1.75;}
+.md-body li{margin-bottom:2px;}
+.md-body code{font-family:var(--mono);font-size:9px;background:rgba(255,255,255,0.08);padding:1px 4px;border-radius:3px;}
+.md-body pre{background:rgba(0,0,0,0.2);padding:8px;border-radius:4px;overflow-x:auto;margin-bottom:6px;}
+.md-body pre code{background:none;padding:0;}
+.md-body table{width:100%;border-collapse:collapse;font-size:9px;margin-bottom:6px;}
+.md-body th,.md-body td{border:1px solid var(--border);padding:4px 8px;text-align:left;}
+.md-body th{background:rgba(255,255,255,0.05);color:var(--text);}
+.md-body blockquote{border-left:2px solid var(--border-dash);padding-left:8px;opacity:0.7;margin-bottom:6px;}
+.md-body strong{font-weight:500;color:var(--text);}
+.md-body em{font-style:italic;opacity:0.8;}
+.md-body hr{border:none;border-top:1px dashed var(--border);margin:8px 0;}
+
+/* SEARCH */
+#card-search:focus{border-color:var(--border-dash);}
+#card-search::placeholder{color:rgba(255,255,255,0.18);}
+
+/* QUICK CAPTURE CHIPS */
+.capture-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg2);border:1px dashed var(--border);border-radius:20px;font-size:10px;color:var(--text-dim);max-width:200px;transition:all 0.15s;}
+.capture-chip:hover{border-color:var(--border-dash);}
+.capture-chip-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+.capture-chip-promote{font-size:8px;color:var(--accent-dim);cursor:pointer;white-space:nowrap;padding:1px 4px;border:1px solid rgba(180,130,70,0.2);border-radius:10px;transition:all 0.15s;}
+.capture-chip-promote:hover{color:var(--accent);border-color:var(--accent-dim);}
+.capture-chip-del{font-size:11px;color:var(--text-faint);cursor:pointer;opacity:0.5;transition:opacity 0.15s;line-height:1;}
+.capture-chip-del:hover{opacity:1;color:rgba(200,80,80,0.7);}
+
+/* PAPER CARDS FIX */
+body.theme-paper .feed-card{background:rgba(255,255,255,0.7);border:1px solid rgba(105,55,12,0.2);}
+body.theme-paper .feed-card-title{color:rgba(22,15,6,1) !important;}
+body.theme-paper .feed-card-body{color:rgba(22,15,6,0.8) !important;}
+body.theme-paper .feed-card-time{color:rgba(22,15,6,0.5) !important;}
+body.theme-paper .card-amber{background:rgba(220,175,100,0.25) !important;border-color:rgba(180,130,70,0.4) !important;}
+body.theme-paper .card-purple{background:rgba(180,140,220,0.2) !important;border-color:rgba(140,100,200,0.35) !important;}
+body.theme-paper .card-teal{background:rgba(100,180,160,0.2) !important;border-color:rgba(60,160,140,0.35) !important;}
+body.theme-paper .card-blue{background:rgba(120,160,220,0.2) !important;border-color:rgba(80,130,200,0.35) !important;}
+body.theme-paper .card-rose{background:rgba(220,140,150,0.2) !important;border-color:rgba(200,90,100,0.35) !important;}
+body.theme-paper .card-slate{background:rgba(150,155,165,0.2) !important;border-color:rgba(100,110,125,0.35) !important;}
+body.theme-paper .pinned-card{background:rgba(220,175,100,0.2);border-color:rgba(105,55,12,0.3);}
+body.theme-paper .journal-card{background:rgba(255,255,255,0.8);border-left-color:rgba(105,55,12,0.5);}
+body.theme-paper .tag{color:rgba(22,15,6,0.7) !important;}
+
+/* GLASS CARDS FIX */
+body.theme-glass .feed-card-title{color:rgba(245,248,255,1) !important;}
+body.theme-glass .feed-card-body{color:rgba(245,248,255,0.9) !important;}
+body.theme-glass .feed-card-time{color:rgba(245,248,255,0.6) !important;}
+body.theme-glass .tag{color:rgba(245,248,255,0.85) !important;border-color:rgba(255,255,255,0.2) !important;background:rgba(255,255,255,0.1);}
+
+/* CHAT HISTORY CARDS */
+#chats-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;align-content:start;}
+.chat-date-group{grid-column:1/-1;font-size:9px;color:var(--accent-dim);letter-spacing:0.12em;text-transform:uppercase;padding:10px 0 4px;opacity:0.65;}
+.chat-entry{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;cursor:pointer;transition:all 0.18s;animation:fadeSlideIn 0.2s ease;position:relative;}
+.chat-entry:hover{border-color:rgba(255,255,255,0.2);transform:translateY(-2px);}
+.chat-entry-time{font-size:9px;color:var(--accent-dim);margin-bottom:3px;}
+.chat-entry-summary{font-size:10px;color:var(--text-dim);line-height:1.6;}
+.chat-entry-project{font-size:8px;color:var(--text-faint);margin-top:4px;}
+.chat-entry-del{position:absolute;top:8px;right:8px;font-size:9px;color:var(--text-faint);cursor:pointer;opacity:0;transition:opacity 0.15s;border:1px solid transparent;border-radius:3px;padding:2px 5px;font-family:var(--mono);}
+.chat-entry:hover .chat-entry-del{opacity:0.6;}
+.chat-entry-del:hover{opacity:1 !important;color:rgba(200,80,80,0.8);border-color:rgba(200,80,80,0.3);}
+#chats-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+/* ANIMATIONS */
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+.generating{animation:pulse 1.2s ease infinite;}
+
+/* THEMES */
+body.theme-void{--bg:#09080e;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.12);--accent:rgba(155,115,220,1);--accent-dim:rgba(155,115,220,0.85);--accent-faint:rgba(155,115,220,0.12);--border-dash:rgba(155,115,220,0.4);--text:rgba(218,208,240,1);--text-dim:rgba(218,208,240,0.88);--text-faint:rgba(218,208,240,0.55);--overlay:rgba(7,5,14,0.84);}
+body.theme-slate{--bg:#0c0c0c;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.12);--accent:rgba(150,155,160,1);--accent-dim:rgba(150,155,160,0.85);--accent-faint:rgba(150,155,160,0.1);--border-dash:rgba(150,155,160,0.4);--text:rgba(208,212,218,1);--text-dim:rgba(208,212,218,0.88);--text-faint:rgba(208,212,218,0.55);--overlay:rgba(7,7,7,0.84);}
+body.theme-paper{--bg:#ede8e0;--bg2:rgba(0,0,0,0.04);--border:rgba(0,0,0,0.1);--accent:rgba(105,55,12,1);--accent-dim:rgba(105,55,12,0.8);--accent-faint:rgba(105,55,12,0.08);--border-dash:rgba(105,55,12,0.28);--text:rgba(22,15,6,1);--text-dim:rgba(22,15,6,0.88);--text-faint:rgba(22,15,6,0.55);--overlay:rgba(237,232,224,0.8);}
+body.theme-paper #wallpaper-layer::after{background:rgba(237,232,224,0.96);backdrop-filter:none;}
+body.theme-paper #sidebar{background:rgba(210,200,185,0.6);}
+body.theme-glass{--bg:#080810;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.14);--accent:rgba(190,215,255,1);--accent-dim:rgba(190,215,255,0.8);--accent-faint:rgba(190,215,255,0.07);--border-dash:rgba(190,215,255,0.28);--text:rgba(230,238,255,1);--text-dim:rgba(230,238,255,0.88);--text-faint:rgba(230,238,255,0.55);--overlay:rgba(4,4,18,0.42);}
+body.theme-glass #wallpaper-layer::after{background:var(--overlay);backdrop-filter:blur(16px);}
+body.theme-glass #sidebar{background:rgba(255,255,255,0.04);backdrop-filter:blur(24px);border-right:1px solid rgba(255,255,255,0.09);}
+body.theme-glass #topbar{background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.07);}
+body.theme-glass .feed-card,body.theme-glass #chat-panel,body.theme-glass .pinned-card,body.theme-glass #project-chat-messages{background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03));backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.13);box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);}
+body.theme-glass .btn,.theme-glass .form-input,.theme-glass .form-textarea{backdrop-filter:blur(10px);}
+body.theme-glass #user-panel-inner,.theme-glass .modal-box{background:rgba(12,12,28,0.72);backdrop-filter:blur(32px);}
+
+body.theme-nord{--bg:#0d1117;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.12);--accent:rgba(136,192,208,1);--accent-dim:rgba(136,192,208,0.8);--accent-faint:rgba(136,192,208,0.1);--border-dash:rgba(136,192,208,0.35);--text:rgba(216,222,233,1);--text-dim:rgba(216,222,233,0.88);--text-faint:rgba(216,222,233,0.5);--overlay:rgba(8,10,14,0.84);}
+body.theme-crimson{--bg:#0e0a0a;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.12);--accent:rgba(200,60,60,1);--accent-dim:rgba(200,60,60,0.8);--accent-faint:rgba(200,60,60,0.1);--border-dash:rgba(200,60,60,0.35);--text:rgba(240,215,215,1);--text-dim:rgba(240,215,215,0.88);--text-faint:rgba(240,215,215,0.5);--overlay:rgba(14,6,6,0.84);}
+body.theme-forest{--bg:#090e0a;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.12);--accent:rgba(100,180,100,1);--accent-dim:rgba(100,180,100,0.8);--accent-faint:rgba(100,180,100,0.1);--border-dash:rgba(100,180,100,0.35);--text:rgba(200,225,200,1);--text-dim:rgba(200,225,200,0.88);--text-faint:rgba(200,225,200,0.5);--overlay:rgba(6,12,6,0.84);}
+body.theme-midnight{--bg:#05050f;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.12);--accent:rgba(100,120,220,1);--accent-dim:rgba(100,120,220,0.8);--accent-faint:rgba(100,120,220,0.1);--border-dash:rgba(100,120,220,0.35);--text:rgba(200,205,240,1);--text-dim:rgba(200,205,240,0.88);--text-faint:rgba(200,205,240,0.5);--overlay:rgba(4,4,16,0.86);}
+body.theme-rose{--bg:#0f0a0d;--bg2:rgba(255,255,255,0.055);--border:rgba(255,255,255,0.12);--accent:rgba(210,120,150,1);--accent-dim:rgba(210,120,150,0.8);--accent-faint:rgba(210,120,150,0.1);--border-dash:rgba(210,120,150,0.35);--text:rgba(240,215,225,1);--text-dim:rgba(240,215,225,0.88);--text-faint:rgba(240,215,225,0.5);--overlay:rgba(14,6,10,0.84);}
+/* TOAST */
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(60px);background:rgba(14,12,10,0.97);border:1px dashed var(--border-dash);border-radius:4px;color:var(--text-dim);font-size:10px;padding:7px 15px;letter-spacing:0.04em;z-index:300;transition:transform 0.2s ease;pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body class="theme-amber">
+<div id="wallpaper-layer"></div>
+
+<div id="sidebar">
+  <button class="nav-btn active" data-page="hub" onclick="navTo('hub')" title="hub">⌂</button>
+  <button class="nav-btn" data-page="journal" onclick="navTo('journal')" title="journal">✎</button>
+  <button class="nav-btn" data-page="projects" onclick="navTo('projects')" title="projects">◈</button>
+  <button class="nav-btn" data-page="chats" onclick="navTo('chats')" title="chats">≡</button>
+  <button class="nav-btn" data-page="memories" onclick="navTo('memories')" title="memories">◉</button>
+  <button class="nav-btn" data-page="settings" onclick="navTo('settings')" title="settings">⚙</button>
+  <div class="nav-spacer"></div>
+  <div id="version-label">bingus-hub<br>release 1.3</div>
+</div>
+
+<div id="main">
+  <div id="topbar">
+    <div id="topbar-left">
+      <div id="avatar-btn" onclick="openPanel()">D</div>
+      <div id="username-display" onclick="openPanel()">dusk</div>
+    </div>
+    <div id="topbar-center">
+      <div id="clock">--:--:--</div>
+      <div id="dateline">--- -- ----</div>
+    </div>
+    <div id="topbar-right">
+      <div id="project-indicator" onclick="navTo('projects')">[ no project ]</div>
+      <select class="tb-btn" id="model-select" onchange="saveModel()">
+        <option value="">loading...</option>
+      </select>
+      <div class="tb-btn" onclick="newSession()">[ new ]</div>
+      <div class="tb-btn" id="remove-wp-btn" onclick="removeWallpaper()" style="display:none">[ x wp ]</div>
+      <select class="tb-btn" id="tb-theme-select" onchange="setTheme(this.value)" style="width:90px;"><option value="theme-amber">amber</option><option value="theme-void">void</option><option value="theme-slate">slate</option><option value="theme-paper">paper</option><option value="theme-glass">glass ✦</option><option value="theme-nord">nord</option><option value="theme-crimson">crimson</option><option value="theme-forest">forest</option><option value="theme-midnight">midnight</option><option value="theme-rose">rose</option></select>
+    </div>
+  </div>
+
+  <!-- HUB -->
+  <div class="page active" id="page-hub">
+    <div id="hub-left">
+      <div>
+        <div class="sec-label">quick capture</div>
+        <div id="qc-row">
+          <input id="qc-input" placeholder="throw something in...">
+          <button id="qc-btn" onclick="saveCapture()">+ save</button>
+        </div>
+        <div id="captures-chips" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+      <div>
+        <div class="sec-label">pinned</div>
+        <div id="pinned-strip"><span class="empty-state">nothing pinned yet</span></div>
+      </div>
+      <div>
+        <div class="sec-label" style="margin-bottom:8px;">session cards</div>
+        <div id="card-search-wrap" style="margin-bottom:10px;">
+          <input id="card-search" placeholder="search cards..." style="width:100%;background:var(--bg2);border:1px dashed var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:10px;padding:6px 10px;outline:none;transition:border-color 0.18s;" oninput="filterCards(this.value)">
+        </div>
+        <div id="feed"><span class="empty-state" style="grid-column:1/-1;">no cards yet</span></div>
+      </div>
+    </div>
+    <div id="hub-right">
+      <div id="chat-section-label">bingus</div>
+      <div id="chat-panel">
+        <div id="chat-messages"></div>
+        <div id="typing-indicator">bingus is thinking...</div>
+        <div id="attach-preview" onclick="clearAttach()">click to remove</div>
+        <div id="chat-input-area">
+          <div id="attach-btn">+<input type="file" id="attach-file" onchange="handleAttach(this)"></div>
+          <textarea id="chat-input" placeholder="talk to bingus..."></textarea>
+          <button id="stop-btn" onclick="stopGeneration()">stop</button>
+          <button id="send-btn" onclick="sendMessage()">send</button>
+          <button id="end-btn" onclick="endSession()">checkpoint</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHATS -->
+  <div class="page" id="page-chats">
+    <div id="chats-header"><div class="page-title">// chat history</div><button class="btn small danger" onclick="clearAllSessions()">clear all</button></div>
+    <div id="chats-filter">
+      <button class="filter-btn active" onclick="filterChats('all',this)">all</button>
+      <button class="filter-btn" onclick="filterChats('no-project',this)">no project</button>
+    </div>
+    <div id="chats-list"><span class="empty-state">no sessions yet</span></div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="page" id="page-projects">
+    <div id="projects-header">
+      <div class="page-title">// projects</div>
+      <button class="btn" onclick="openProjectModal(null)">+ new project</button>
+    </div>
+
+    <div id="project-list-view"></div>
+
+    <div id="project-detail-view">
+      <div id="project-detail-header">
+        <div id="project-back-btn" onclick="showProjectList()">← back</div>
+        <div id="project-detail-dot" class="project-dot"></div>
+        <div id="project-detail-name"></div>
+        <button class="btn small" onclick="openProjectModal(currentProjectDetail)" style="margin-left:auto;">edit</button>
+        <button class="btn small" id="project-activate-btn" onclick="setActiveProject(currentProjectDetail)">set active</button>
+      </div>
+      <div id="project-detail-body">
+        <div id="project-cards-col"><span class="empty-state">no cards yet</span></div>
+        <div id="project-chat-col">
+          <div id="project-chat-messages"></div>
+          <div id="project-typing">bingus is thinking...</div>
+          <div id="project-chat-input-area">
+            <textarea id="project-chat-input" placeholder="project chat..."></textarea>
+            <button id="project-stop-btn" onclick="stopProjectGeneration()">stop</button>
+            <button id="project-send-btn" onclick="sendProjectMessage()">send</button>
+            <button id="project-end-btn" onclick="endProjectSession()">end session</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOURNAL -->
+  <div class="page" id="page-journal">
+    <div id="journal-main">
+      <div id="journal-compose">
+        <textarea id="journal-textarea" placeholder="write something..."></textarea>
+        <div id="journal-compose-actions">
+          <button class="btn small" onclick="saveJournalEntry()">+ save entry</button>
+        </div>
+      </div>
+      <div id="journal-cards-grid"></div>
+    </div>
+  </div>
+
+  <!-- MEMORIES -->
+  <div class="page" id="page-memories">
+    <div class="page-title" style="margin-bottom:16px;">// memories</div>
+    <div style="font-size:9px;color:var(--text-faint);margin-bottom:14px;">bingus adds these after sessions. review and delete what isn't useful.</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;"><button class="btn small" onclick="openMemoryModal()">+ add manually</button></div>
+    <div id="memories-page-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;align-content:start;"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="page-title" style="margin-bottom:16px;">// settings</div>
+    <div class="settings-section">
+      <div class="settings-section-title">connection</div>
+      <div class="setting-row">
+        <div><div class="setting-label">ollama url</div><div class="setting-sub">where your ollama is running</div></div>
+        <input class="form-input" id="setting-ollama-url" style="width:200px;" placeholder="http://localhost:11434">
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">appearance</div>
+      <div class="setting-row">
+        <div class="setting-label">theme</div>
+        <select class="form-input" id="theme-select" onchange="setTheme(this.value)" style="width:160px;">
+          <option value="theme-amber">amber</option>
+          <option value="theme-void">void</option>
+          <option value="theme-slate">slate</option>
+          <option value="theme-paper">paper</option>
+          <option value="theme-glass">glass ✦</option>
+          <option value="theme-nord">nord</option>
+          <option value="theme-crimson">crimson</option>
+          <option value="theme-forest">forest</option>
+          <option value="theme-midnight">midnight</option>
+          <option value="theme-rose">rose</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">wallpaper</div>
+        <div style="display:flex;gap:5px;">
+          <div class="btn small" style="position:relative;overflow:hidden;">upload<input type="file" accept="image/*" onchange="uploadWallpaper(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></div>
+          <button class="btn small danger" onclick="removeWallpaper()">remove</button>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">global context</div>
+      <button class="btn small" onclick="openContextModal(null)" style="margin-bottom:10px;">+ add context</button>
+      <div id="context-list"><span class="empty-state">no global context yet</span></div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">data</div>
+      <div class="setting-row">
+        <div><div class="setting-label">export workspace</div><div class="setting-sub">zip of all your data</div></div>
+        <a href="/api/export" download class="btn small">export zip</a>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>tinker mode</span>
+        <button class="btn small" onclick="toggleTinker()" id="tinker-toggle">enable</button>
+      </div>
+      <div id="tinker-section">
+        <div class="setting-row">
+          <div><div class="setting-label">export bingus modelfile</div><div class="setting-sub">with your context baked in</div></div>
+          <button class="btn small" onclick="exportModelfile()">export</button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">context strategy</div></div>
+          <select class="form-input" id="setting-context-strategy" style="width:130px;">
+            <option value="tags">tags (smart)</option>
+            <option value="full">full history</option>
+            <option value="minimal">minimal</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="saveSettings()">save settings</button>
+  </div>
+</div>
+
+
+<!-- USER PANEL -->
+<div id="user-panel">
+  <div id="user-panel-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:10px;color:var(--accent-dim);letter-spacing:0.15em;text-transform:uppercase;">// profile</div>
+      <div class="modal-close" onclick="closePanel()">[ close ]</div>
+    </div>
+    <div class="panel-avatar-row">
+      <div id="panel-avatar">D<input type="file" id="panel-avatar-file" accept="image/*" onchange="uploadAvatar(this)"></div>
+      <div style="font-size:10px;color:var(--text-faint);">click to change</div>
+    </div>
+    <div class="form-field"><label class="form-label">username</label><input class="form-input wide" id="panel-username" placeholder="dusk"></div>
+    <div class="divider"></div>
+    <div class="form-field">
+      <label class="form-label">about me</label>
+      <textarea class="form-textarea" id="panel-about" rows="5" placeholder="write whatever you think is relevant. bingus uses this as context." style="resize:vertical;min-height:100px;"></textarea>
+    </div>
+    <div class="divider"></div>
+    <button class="btn" onclick="saveProfile()">save</button>
+  </div>
+</div>
+
+<!-- CHAT MODAL -->
+<div class="modal-overlay" id="chat-modal">
+  <div class="modal-box" style="width:580px;">
+    <div class="modal-header">
+      <div id="chat-modal-title" class="modal-title">session</div>
+      <div class="modal-close" onclick="closeModal('chat-modal')">[ close ]</div>
+    </div>
+    <div id="chat-modal-body" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="project-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div id="project-modal-title" class="modal-title">new project</div>
+      <div class="modal-close" onclick="closeModal('project-modal')">[ close ]</div>
+    </div>
+    <input type="hidden" id="pm-id">
+    <div class="form-field"><label class="form-label">name</label><input class="form-input wide" id="pm-name"></div>
+    <div class="form-field"><label class="form-label">color</label><input type="color" id="pm-color" value="#b48246" style="background:transparent;border:1px dashed var(--border-dash);border-radius:4px;padding:3px;height:32px;width:52px;cursor:pointer;"></div>
+    <div class="form-field"><label class="form-label">bingus instructions</label><textarea class="form-textarea" id="pm-instructions" rows="3" placeholder="how should bingus behave in this project..."></textarea></div>
+    <div class="form-field">
+      <label class="form-label">context document</label>
+      <textarea class="form-textarea" id="pm-context" rows="5" placeholder="paste context here..."></textarea>
+      <div style="margin-top:6px;position:relative;display:inline-block;"><div class="btn small" style="position:relative;overflow:hidden;">upload file<input type="file" accept=".txt,.md" onchange="uploadProjectContext(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></div></div>
+    </div>
+    <div style="display:flex;gap:7px;">
+      <button class="btn" onclick="saveProject()">save</button>
+      <button class="btn" onclick="saveAndActivateProject()">save & set active</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMORY MODAL -->
+<div class="modal-overlay" id="memory-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">add memory</div>
+      <div class="modal-close" onclick="closeModal('memory-modal')">[ close ]</div>
+    </div>
+    <div class="form-field"><label class="form-label">title</label><input class="form-input wide" id="mem-title" placeholder="short label"></div>
+    <div class="form-field"><label class="form-label">content</label><textarea class="form-textarea" id="mem-content" rows="4" placeholder="the fact or info..."></textarea></div>
+    <button class="btn" onclick="saveMemory()">save</button>
+  </div>
+</div>
+
+<!-- CONTEXT MODAL -->
+<div class="modal-overlay" id="context-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">global context</div>
+      <div class="modal-close" onclick="closeModal('context-modal')">[ close ]</div>
+    </div>
+    <input type="hidden" id="ctx-id">
+    <div class="form-field"><label class="form-label">title</label><input class="form-input wide" id="ctx-title"></div>
+    <div class="form-field"><label class="form-label">content</label><textarea class="form-textarea" id="ctx-content" rows="6"></textarea></div>
+    <button class="btn" onclick="saveContext()">save</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const OLLAMA=()=>profile.ollama_url||'http://localhost:11434';
+let conversation=[],sessionId=null,profile={},allCards=[],allProjects=[],allSessions=[],allMemories=[],allContext=[],allJournal=[],allCaptures=[];
+let activeProjectId=null,currentAbort=null,currentJournalId=null,pendingAttachment=null,currentChatFilter='all',tinkerVisible=false;
+let currentProjectDetail=null,projectConversation=[],projectSessionId=null,projectAbort=null;
+const themes=['theme-amber','theme-void','theme-slate','theme-paper','theme-glass','theme-nord','theme-crimson','theme-forest','theme-midnight','theme-rose'];
+let themeIdx=0;
+
+// Card color palette — assigned by index for consistency
+const CARD_COLORS=['card-amber','card-purple','card-teal','card-blue','card-rose','card-slate'];
+let cardColorIdx=0;
+function nextCardColor(){const c=CARD_COLORS[cardColorIdx%CARD_COLORS.length];cardColorIdx++;return c;}
+
+
+function pad(n){return String(n).padStart(2,'0');}
+const DAYS=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+const MONTHS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+function tick(){const n=new Date();document.getElementById('clock').textContent=pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());document.getElementById('dateline').textContent=DAYS[n.getDay()]+' '+n.getDate()+' '+MONTHS[n.getMonth()]+' '+n.getFullYear();}
+tick();setInterval(tick,1000);
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtTime(str){if(!str)return '';const d=new Date(str);return pad(d.getHours())+':'+pad(d.getMinutes());}
+function fmtDate(str){if(!str)return '';const d=new Date(str);return DAYS[d.getDay()]+' '+d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();}
+function fmtDateGroup(str){return fmtDate(str)||'unknown';}
+
+// NAV with fade transition
+function navTo(page){
+  const current=document.querySelector('.page.active');
+  if(current){current.style.opacity='0';setTimeout(()=>{current.classList.remove('active');activate(page);},120);}
+  else activate(page);
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  if(page==='chats')loadChatsPage();
+  if(page==='projects')loadProjectsPage();
+  if(page==='journal')loadJournalPage();
+  if(page==='settings')loadSettingsPage();
+  if(page==='memories')loadMemoriesPage();
+}
+function activate(page){
+  const el=document.getElementById('page-'+page);
+  el.classList.add('active');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.opacity='1';}));
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+// THEME
+function cycleTheme(){document.body.classList.remove(themes[themeIdx]);themeIdx=(themeIdx+1)%themes.length;document.body.classList.add(themes[themeIdx]);fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme:themes[themeIdx]})});}
+function setTheme(t){
+  document.body.classList.remove(...themes);
+  const i=themes.indexOf(t);themeIdx=i>=0?i:0;
+  document.body.classList.add(themes[themeIdx]);
+  fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme:themes[themeIdx]})});
+  const ts=document.getElementById('theme-select');if(ts)ts.value=themes[themeIdx];
+  const tbs=document.getElementById('tb-theme-select');if(tbs)tbs.value=themes[themeIdx];
+  toast('theme: '+t.replace('theme-',''));
+}
+
+// MODELS
+async function loadModels(){
+  try{
+    const res=await fetch('/api/models');const models=await res.json();
+    const sel=document.getElementById('model-select');const current=profile.model||'';
+    sel.innerHTML='';
+    if(models.length===0){sel.innerHTML='<option value="">no models found</option>';return;}
+    for(const m of models){
+      const opt=document.createElement('option');opt.value=m.name;
+      const label=m.name.split(':')[0]+(m.name.includes(':')&&m.name.split(':')[1]!=='latest'?':'+m.name.split(':')[1]:'');
+      opt.textContent=label;if(m.name===current)opt.selected=true;sel.appendChild(opt);
+    }
+    if(current&&!models.find(m=>m.name===current))sel.selectedIndex=0;
+  }catch(e){console.error('models fetch failed:',e);}
+}
+
+// PROFILE
+async function loadProfile(){
+  const res=await fetch('/api/profile');profile=await res.json();
+  const u=profile.username||'dusk';
+  document.getElementById('username-display').textContent=u;
+  document.getElementById('avatar-btn').textContent=u[0].toUpperCase();
+  document.getElementById('panel-username').value=u;
+  document.getElementById('panel-about').value=profile.about_me||'';
+  if(profile.avatar)setAvatarImg(profile.avatar);
+  if(profile.wallpaper)setWallpaper(profile.wallpaper);
+  if(profile.theme){const i=themes.indexOf(profile.theme);if(i>=0){document.body.classList.remove(themes[themeIdx]);themeIdx=i;document.body.classList.add(themes[themeIdx]);
+    const ts=document.getElementById('theme-select');if(ts)ts.value=themes[themeIdx];
+    const tbs=document.getElementById('tb-theme-select');if(tbs)tbs.value=themes[themeIdx];
+  }}
+  if(profile.active_project&&profile.active_project!=='')activeProjectId=parseInt(profile.active_project)||null;
+  updateProjectIndicator();
+}
+function setAvatarImg(url){
+  ['avatar-btn','panel-avatar'].forEach(id=>{
+    const el=document.getElementById(id);const ex=el.querySelector('img');if(ex)ex.remove();
+    const img=document.createElement('img');img.src=url;
+    if(id==='panel-avatar')el.insertBefore(img,el.firstChild);else{el.innerHTML='';el.appendChild(img);}
+  });
+}
+async function saveProfile(){
+  const u=document.getElementById('panel-username').value.trim()||'dusk';
+  const about=document.getElementById('panel-about').value.trim();
+  await fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,about_me:about})});
+  document.getElementById('username-display').textContent=u;
+  document.getElementById('avatar-btn').textContent=u[0].toUpperCase();
+  closePanel();toast('saved');
+}
+async function uploadAvatar(input){
+  if(!input.files[0])return;
+  const fd=new FormData();fd.append('avatar',input.files[0]);
+  const {url}=await(await fetch('/api/upload/avatar',{method:'POST',body:fd})).json();
+  profile.avatar=url;setAvatarImg(url);toast('avatar updated');
+}
+async function saveModel(){const m=document.getElementById('model-select').value;profile.model=m;await fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m})});}
+function openPanel(){document.getElementById('user-panel').classList.add('open');}
+function closePanel(){document.getElementById('user-panel').classList.remove('open');}
+document.getElementById('user-panel').addEventListener('click',function(e){if(e.target===this)closePanel();});
+
+// WALLPAPER
+function setWallpaper(url){document.getElementById('wallpaper-layer').style.backgroundImage=`url(${url})`;document.getElementById('remove-wp-btn').style.display='block';}
+async function uploadWallpaper(input){
+  if(!input.files[0])return;
+  const fd=new FormData();fd.append('wallpaper',input.files[0]);
+  const {url}=await(await fetch('/api/upload/wallpaper',{method:'POST',body:fd})).json();
+  setWallpaper(url);toast('wallpaper set');
+}
+async function removeWallpaper(){
+  document.getElementById('wallpaper-layer').style.backgroundImage='';
+  document.getElementById('remove-wp-btn').style.display='none';
+  await fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({wallpaper:''})});
+  toast('wallpaper removed');
+}
+
+// PROJECTS
+function updateProjectIndicator(){
+  const pi=document.getElementById('project-indicator');
+  if(activeProjectId&&allProjects.length>0){
+    const p=allProjects.find(x=>x.id===activeProjectId);
+    if(p){pi.textContent=`[ ${p.name} ]`;pi.style.borderColor=p.color+'88';pi.style.color=p.color;return;}
+  }
+  pi.textContent='[ no project ]';pi.style.borderColor='';pi.style.color='';
+}
+async function loadProjects(){
+  const res=await fetch('/api/projects');allProjects=await res.json();
+  const cf=document.getElementById('chats-filter');
+  cf.querySelectorAll('.proj-filter').forEach(b=>b.remove());
+  for(const p of allProjects){const b=document.createElement('button');b.className='filter-btn proj-filter';b.textContent=p.name;b.onclick=function(){filterChats(p.id,this);};cf.appendChild(b);}
+}
+async function loadProjectsPage(){
+  await loadProjects();updateProjectIndicator();
+  showProjectList();
+  const grid=document.getElementById('project-list-view');grid.innerHTML='';
+  if(allProjects.length===0){grid.innerHTML='<span class="empty-state">no projects yet</span>';return;}
+  for(const p of allProjects){
+    const card=document.createElement('div');card.className='project-list-card'+(activeProjectId===p.id?' active-project':'');
+    card.innerHTML=`<div class="project-name"><span class="project-dot" style="background:${p.color}"></span>${esc(p.name)}</div><div class="project-meta">${esc((p.instructions||'no instructions set').slice(0,80))}</div><div class="project-actions"><button class="proj-btn primary" onclick="setActiveProject(${p.id});event.stopPropagation()">set active</button><button class="proj-btn" onclick="openProjectDetail(${p.id});event.stopPropagation()">open</button><button class="proj-btn" onclick="openProjectModal(${p.id});event.stopPropagation()">edit</button><button class="proj-btn" onclick="deleteProject(${p.id});event.stopPropagation()">del</button></div>`;
+    grid.appendChild(card);
+  }
+}
+function showProjectList(){
+  document.getElementById('project-list-view').classList.remove('hidden');
+  document.getElementById('project-detail-view').classList.remove('visible');
+}
+async function openProjectDetail(id){
+  currentProjectDetail=id;
+  const p=allProjects.find(x=>x.id===id);if(!p)return;
+  document.getElementById('project-detail-name').textContent=p.name;
+  document.getElementById('project-detail-dot').style.background=p.color;
+  document.getElementById('project-activate-btn').textContent=activeProjectId===id?'active ✓':'set active';
+  document.getElementById('project-list-view').classList.add('hidden');
+  document.getElementById('project-detail-view').classList.add('visible');
+  // load project cards
+  const res=await fetch(`/api/cards?project_id=${id}`);const cards=await res.json();
+  const col=document.getElementById('project-cards-col');col.innerHTML='';
+  if(cards.length===0){col.innerHTML='<span class="empty-state">no cards yet</span>';return;}
+  cards.forEach(c=>{
+    const el=document.createElement('div');el.className='project-card-item feed-card '+getCardColorClass(c);
+    el.innerHTML=`<div class="feed-card-inner"><div class="feed-card-title">${esc(c.title)}</div><div class="feed-card-time">${fmtTime(c.created_at)}</div></div>`;
+    col.appendChild(el);
+  });
+  // restore project session
+  await loadProjectSession(id);
+}
+async function loadProjectSession(pid){
+  try{
+    const res=await fetch(`/api/sessions/active?project_id=${pid}`);
+    if(!res.ok)return;
+    const data=await res.json();
+    if(!data||!data.transcript||data.transcript.length===0){addProjectSystemMsg('project chat — session not started');return;}
+    projectSessionId=data.id;projectConversation=data.transcript;
+    const c=document.getElementById('project-chat-messages');c.innerHTML='';
+    addProjectSystemMsg('— session restored —');
+    for(const msg of projectConversation){
+      if(msg.role==='system')continue;
+      const content=typeof msg.content==='string'?msg.content:'[image]';
+      addProjectMsg(msg.role==='user'?'user':'bingus',content);
+    }
+  }catch{addProjectSystemMsg('project chat — start a session');}
+}
+async function setActiveProject(id){
+  activeProjectId=id;
+  await fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active_project:String(id)})});
+  updateProjectIndicator();await loadCards();loadProjectsPage();
+  document.getElementById('project-activate-btn').textContent='active ✓';
+  toast('project active');
+}
+function openProjectModal(id){
+  document.getElementById('pm-id').value=id||'';
+  ['pm-name','pm-instructions','pm-context'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('pm-color').value='#b48246';
+  document.getElementById('project-modal-title').textContent=id?'edit project':'new project';
+  if(id){const p=allProjects.find(x=>x.id===id);if(p){document.getElementById('pm-name').value=p.name;document.getElementById('pm-color').value=p.color||'#b48246';document.getElementById('pm-instructions').value=p.instructions||'';document.getElementById('pm-context').value=p.context_doc||'';}}
+  openModal('project-modal');
+}
+async function saveProject(){
+  const id=document.getElementById('pm-id').value;
+  const data={name:document.getElementById('pm-name').value.trim(),color:document.getElementById('pm-color').value,instructions:document.getElementById('pm-instructions').value.trim(),context_doc:document.getElementById('pm-context').value.trim()};
+  if(!data.name){toast('need a name');return;}
+  if(id)await fetch(`/api/projects/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  else await fetch('/api/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  closeModal('project-modal');await loadProjects();loadProjectsPage();toast('saved');
+}
+async function saveAndActivateProject(){
+  const id=document.getElementById('pm-id').value;
+  await saveProject();
+  const res=await fetch('/api/projects');const ps=await res.json();
+  const target=id?ps.find(p=>p.id===parseInt(id)):ps[0];
+  if(target)await setActiveProject(target.id);
+}
+async function deleteProject(id){
+  await fetch(`/api/projects/${id}`,{method:'DELETE'});
+  if(activeProjectId===id){activeProjectId=null;await fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active_project:''})});updateProjectIndicator();}
+  loadProjectsPage();toast('deleted');
+}
+async function uploadProjectContext(input){
+  if(!input.files[0])return;
+  const fd=new FormData();fd.append('context',input.files[0]);
+  const {content}=await(await fetch('/api/upload/project-context',{method:'POST',body:fd})).json();
+  document.getElementById('pm-context').value=content;toast('context loaded');
+}
+
+// PROJECT CHAT
+function addProjectMsg(role,text){
+  const c=document.getElementById('project-chat-messages');
+  const div=document.createElement('div');div.className=`msg msg-${role==='user'?'user':'bingus'}`;
+  div.innerHTML=`<div class="msg-meta">${role==='user'?'you //':'bingus //'}</div><div class="msg-text">${esc(text)}</div>`;
+  c.appendChild(div);c.scrollTop=c.scrollHeight;
+}
+function addProjectSystemMsg(text){
+  const c=document.getElementById('project-chat-messages');
+  const div=document.createElement('div');div.className='msg msg-system';
+  div.innerHTML=`<div class="msg-text">${text}</div>`;c.appendChild(div);c.scrollTop=c.scrollHeight;
+}
+function buildProjectContext(){
+  const msgs=[];
+  if(profile.about_me)msgs.push({role:'system',content:'about the user:\n'+profile.about_me});
+  if(allMemories.length>0)msgs.push({role:'system',content:'memories:\n'+allMemories.map(m=>`[${m.title}]: ${m.content}`).join('\n')});
+  if(currentProjectDetail){
+    const p=allProjects.find(x=>x.id===currentProjectDetail);
+    if(p){let s='';if(p.instructions)s+=p.instructions+'\n\n';if(p.context_doc)s+='project context:\n'+p.context_doc;if(s.trim())msgs.push({role:'system',content:s.trim()});}
+  }
+  return [...msgs,...projectConversation];
+}
+async function sendProjectMessage(){
+  const input=document.getElementById('project-chat-input'),text=input.value.trim();
+  if(!text)return;
+  if(!projectSessionId)projectSessionId=Date.now().toString();
+  input.value='';
+  addProjectMsg('user',text);projectConversation.push({role:'user',content:text});
+  saveProjectTranscript();
+  const model=document.getElementById('model-select').value;
+  const typingEl=document.getElementById('project-typing');typingEl.style.display='block';
+  document.getElementById('project-stop-btn').style.display='block';
+  document.getElementById('project-send-btn').style.display='none';
+  projectAbort=new AbortController();
+  try{
+    const res=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:buildProjectContext(),stream:true}),signal:projectAbort.signal});
+    typingEl.style.display='none';
+    const c=document.getElementById('project-chat-messages');
+    const msgDiv=document.createElement('div');msgDiv.className='msg msg-bingus';
+    msgDiv.innerHTML='<div class="msg-meta">bingus //</div><div class="msg-text"></div>';
+    c.appendChild(msgDiv);const textEl=msgDiv.querySelector('.msg-text');
+    const reader=res.body.getReader(),decoder=new TextDecoder();let fullText='';
+    while(true){const{done,value}=await reader.read();if(done)break;
+      const lines=decoder.decode(value).split('\n').filter(l=>l.startsWith('data: ')&&l!=='data: [DONE]');
+      for(const line of lines){try{const d=JSON.parse(line.slice(6));fullText+=(d.choices?.[0]?.delta?.content||'');textEl.textContent=fullText.replace(/#{1,6}\s+/g,'').replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/`{1,3}[^`]*`{1,3}/g,'').replace(/\|[^\n]+\|/g,'').replace(/^[-*+]\s+/gm,'').replace(/^>\s+/gm,'').trim();c.scrollTop=c.scrollHeight;}catch{}}
+    }
+    projectConversation.push({role:'assistant',content:fullText});saveProjectTranscript();
+    document.getElementById('project-stop-btn').style.display='none';document.getElementById('project-send-btn').style.display='block';projectAbort=null;
+  }catch(err){
+    typingEl.style.display='none';document.getElementById('project-stop-btn').style.display='none';document.getElementById('project-send-btn').style.display='block';projectAbort=null;
+    if(err.name!=='AbortError')addProjectSystemMsg('could not reach ollama');
+  }
+}
+document.getElementById('project-chat-input').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendProjectMessage();}});
+function stopProjectGeneration(){if(projectAbort){projectAbort.abort();projectAbort=null;}document.getElementById('project-stop-btn').style.display='none';document.getElementById('project-send-btn').style.display='block';document.getElementById('project-typing').style.display='none';}
+async function saveProjectTranscript(){
+  if(!projectSessionId||projectConversation.length===0)return;
+  await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:projectSessionId,transcript:projectConversation,project_id:currentProjectDetail,summary:''})});
+}
+async function endProjectSession(){
+  if(projectConversation.length===0){toast('nothing to end');return;}
+  const model=document.getElementById('model-select').value;
+  addProjectSystemMsg('generating session card...');
+  const endPrompt=`Based on this conversation, extract the most useful piece of knowledge or decision worth keeping. Output ONLY a JSON object, no other text, no markdown:\n{"title":"specific descriptive title (not 'conversation about X')","summary":"the actual useful insight, decision, or knowledge — not a description of what was talked about","key_points":["specific actionable or useful point","another if relevant"],"tags":["#tag1","#tag2"]}\n\nIf nothing genuinely worth keeping as a knowledge artifact: {}`;
+  try{
+    const res=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[...projectConversation,{role:'user',content:endPrompt}],stream:false})});
+    const data=await res.json();const raw=data.choices?.[0]?.message?.content||'{}';
+    let card=null;try{const m=raw.match(/\{[\s\S]*\}/);if(m){const p=JSON.parse(m[0]);if(p.title)card=p;}}catch{}
+    if(card){
+      const body=card.summary+(card.key_points?.length?'\n\n'+card.key_points.map(p=>'— '+p).join('\n'):'');
+      await fetch('/api/cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:card.title,body,tags:card.tags||[],session_id:projectSessionId,project_id:currentProjectDetail,source:'project'})});
+      await loadCards();addProjectSystemMsg('session ended — card saved to hub');toast('card added to hub');
+    }else{addProjectSystemMsg('session ended');}
+    const sr=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[...projectConversation,{role:'user',content:'Summarise this in one plain sentence.'}],stream:false})});
+    const sd=await sr.json();const summary=sd.choices?.[0]?.message?.content||'';
+    await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:projectSessionId,transcript:projectConversation,project_id:currentProjectDetail,summary})});
+    projectConversation=[];projectSessionId=null;
+    // reload project detail
+    if(currentProjectDetail)await openProjectDetail(currentProjectDetail);
+  }catch{addProjectSystemMsg('could not reach ollama');}
+}
+
+// CARDS
+function getCardColorClass(c){
+  if(c.color)return c.color;
+  // assign based on card id for consistency
+  return CARD_COLORS[c.id%CARD_COLORS.length];
+}
+async function loadCards(){
+  const res=await fetch('/api/cards');const all=await res.json();
+  allCards=activeProjectId?all.filter(c=>c.project_id===activeProjectId||!c.project_id):all;
+  renderCards();
+}
+function renderCards(){
+  const pinned=allCards.filter(c=>c.pinned),feed=allCards.filter(c=>!c.pinned);
+  const strip=document.getElementById('pinned-strip');
+  strip.innerHTML=pinned.length?'':'<span class="empty-state">nothing pinned yet</span>';
+  pinned.forEach(c=>{
+    const colorClass=getCardColorClass(c);
+    const el=document.createElement('div');el.className=`pinned-card ${colorClass}`;
+    el.innerHTML=`<div class="pinned-card-title">${esc(c.title)}</div><div class="pinned-card-body">${esc((c.body||'').slice(0,70))}</div><div class="pin-x" onclick="togglePin(${c.id},false)">×</div>`;
+    strip.appendChild(el);
+  });
+  const feedEl=document.getElementById('feed');feedEl.innerHTML='';
+  if(feed.length===0){feedEl.innerHTML='<span class="empty-state" style="grid-column:1/-1;">no cards yet — end a session to generate</span>';return;}
+  const groups={};
+  feed.forEach(c=>{const d=fmtDateGroup(c.created_at);if(!groups[d])groups[d]=[];groups[d].push(c);});
+  for(const[date,items] of Object.entries(groups)){
+    const lbl=document.createElement('div');lbl.className='date-group-label';lbl.textContent=date;feedEl.appendChild(lbl);
+    items.forEach(c=>{
+      const colorClass=getCardColorClass(c);
+      const el=document.createElement('div');el.className=`feed-card ${colorClass}`;
+      el.onclick=()=>el.classList.toggle('expanded');
+      const mdBody=typeof marked!=='undefined'?marked.parse(c.body||''):esc(c.body||'');
+      el.innerHTML=`<div class="feed-card-inner"><div class="feed-card-title">${esc(c.title)}</div><div class="feed-card-time">${fmtTime(c.created_at)} <span class="feed-card-expand">▸ expand</span></div><div class="feed-card-body md-body">${mdBody}</div><div class="feed-card-actions"><button class="btn small" onclick="togglePin(${c.id},true);event.stopPropagation()">pin</button><button class="btn small danger" onclick="deleteCard(${c.id});event.stopPropagation()">del</button></div></div>`;
+      feedEl.appendChild(el);
+    });
+  }
+}
+async function togglePin(id,pin){
+  await fetch(`/api/cards/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({pinned:pin})});
+  await loadCards();
+}
+async function deleteCard(id){await fetch(`/api/cards/${id}`,{method:'DELETE'});allCards=allCards.filter(c=>c.id!==id);renderCards();}
+
+// CAPTURES
+async function loadCaptures(){
+  const res=await fetch('/api/captures');allCaptures=await res.json();renderCaptures();
+}
+function renderCaptures(){
+  const el=document.getElementById('captures-chips');if(!el)return;el.innerHTML='';
+  allCaptures.slice(0,20).forEach(c=>{
+    const chip=document.createElement('div');chip.className='capture-chip';
+    chip.innerHTML=`<span class="capture-chip-text" title="${esc(c.text)}">${esc(c.text)}</span><span class="capture-chip-promote" onclick="promoteCapture(${c.id})">→</span><span class="capture-chip-del" onclick="deleteCapture(${c.id})">×</span>`;
+    el.appendChild(chip);
+  });
+}
+async function saveCapture(){
+  const input=document.getElementById('qc-input'),text=input.value.trim();if(!text)return;
+  await fetch('/api/captures',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+  input.value='';await loadCaptures();toast('captured');
+}
+async function promoteCapture(id){
+  await fetch(`/api/captures/${id}/promote`,{method:'POST'});
+  await loadCaptures();await loadCards();toast('promoted to card');
+}
+async function deleteCapture(id){
+  await fetch(`/api/captures/${id}`,{method:'DELETE'});allCaptures=allCaptures.filter(c=>c.id!==id);renderCaptures();
+}
+document.getElementById('qc-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveCapture();}});
+
+// FILE ATTACH
+async function handleAttach(input){
+  if(!input.files[0])return;
+  const fd=new FormData();fd.append('file',input.files[0]);
+  const data=await(await fetch('/api/upload/file',{method:'POST',body:fd})).json();
+  const preview=document.getElementById('attach-preview');
+  if(data.type==='unsupported'){toast(`can't work with ${data.name} — unsupported format`);return;}
+  pendingAttachment=data;preview.style.display='block';
+  preview.textContent=`📎 ${data.name} (${data.type}) — click to remove`;input.value='';
+}
+function clearAttach(){pendingAttachment=null;document.getElementById('attach-preview').style.display='none';}
+
+// MAIN CHAT
+function addChatMessage(role,text){
+  const c=document.getElementById('chat-messages');
+  const div=document.createElement('div');div.className=`msg msg-${role==='user'?'user':'bingus'}`;
+  div.innerHTML=`<div class="msg-meta">${role==='user'?'you //':'bingus //'}</div><div class="msg-text">${esc(text)}</div>`;
+  c.appendChild(div);c.scrollTop=c.scrollHeight;
+}
+function addSystemMsg(text){
+  const c=document.getElementById('chat-messages');
+  const div=document.createElement('div');div.className='msg msg-system';
+  div.innerHTML=`<div class="msg-text">${text}</div>`;c.appendChild(div);c.scrollTop=c.scrollHeight;
+}
+
+async function buildContext(){
+  const msgs=[];
+  const now=new Date();
+  const dateStr=DAYS[now.getDay()]+' '+now.getDate()+' '+MONTHS[now.getMonth()]+' '+now.getFullYear()+', '+pad(now.getHours())+':'+pad(now.getMinutes());
+  msgs.push({role:'system',content:'current date and time: '+dateStr});
+  if(profile.about_me)msgs.push({role:'system',content:'about the user:\n'+profile.about_me});
+  if(allMemories.length>0)msgs.push({role:'system',content:'memories:\n'+allMemories.map(m=>`[${m.title}]: ${m.content}`).join('\n')});
+  if(allContext.length>0)msgs.push({role:'system',content:'global context:\n'+allContext.map(c=>`[${c.title}]\n${c.content}`).join('\n\n')});
+  if(activeProjectId&&allProjects.length>0){
+    const p=allProjects.find(x=>x.id===activeProjectId);
+    if(p){let s='';if(p.instructions)s+=p.instructions+'\n\n';if(p.context_doc)s+='project context:\n'+p.context_doc;if(s.trim())msgs.push({role:'system',content:s.trim()});}
+  }
+  const strategy=profile.context_strategy||'tags';
+  if(strategy==='tags'&&allCards.length>0){
+    const recentText=conversation.slice(-4).map(m=>typeof m.content==='string'?m.content:'').join(' ');
+    const words=recentText.toLowerCase().split(/\s+/).filter(w=>w.length>3);
+    const relevant=allCards.filter(c=>words.some(w=>c.title.toLowerCase().includes(w)||(c.tags||[]).some(t=>t.toLowerCase().includes(w)))).slice(0,5);
+    if(relevant.length>0)msgs.push({role:'system',content:'relevant cards:\n'+relevant.map(c=>`[${c.title}]: ${c.body}`).join('\n\n')});
+  }
+  return [...msgs,...conversation];
+}
+
+async function sendMessage(){
+  const input=document.getElementById('chat-input'),text=input.value.trim();
+  if(!text&&!pendingAttachment)return;
+  if(!sessionId)sessionId=Date.now().toString();
+  input.value='';
+  let userDisplay=text,userContent=text;
+  if(pendingAttachment){
+    if(pendingAttachment.type==='text'){userContent=(text?text+'\n\n':'')+`[file: ${pendingAttachment.name}]\n${pendingAttachment.content}`;userDisplay=(text?text+'\n':'')+`[${pendingAttachment.name}]`;}
+    else if(pendingAttachment.type==='image'){
+      const imgMsg={role:'user',content:[{type:'text',text:text||'what is in this image?'},{type:'image_url',image_url:{url:`data:${pendingAttachment.mime};base64,${pendingAttachment.data}`}}]};
+      conversation.push(imgMsg);addChatMessage('user',(text?text+'\n':'')+`[image: ${pendingAttachment.name}]`);
+      clearAttach();saveTranscript();await runInference();return;
+    }
+    clearAttach();
+  }
+  addChatMessage('user',userDisplay||text);conversation.push({role:'user',content:userContent||text});
+  saveTranscript();await runInference();
+}
+async function runInference(){
+  const model=document.getElementById('model-select').value;
+  if(!model){toast('no model selected');return;}
+  const typingEl=document.getElementById('typing-indicator');typingEl.style.display='block';
+  document.getElementById('stop-btn').style.display='block';document.getElementById('send-btn').style.display='none';
+  currentAbort=new AbortController();
+  const contextMsgs=await buildContext();
+  try{
+    const res=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:contextMsgs,stream:true}),signal:currentAbort.signal});
+    typingEl.style.display='none';
+    const c=document.getElementById('chat-messages');
+    const msgDiv=document.createElement('div');msgDiv.className='msg msg-bingus';
+    msgDiv.innerHTML='<div class="msg-meta">bingus //</div><div class="msg-text"></div>';
+    c.appendChild(msgDiv);const textEl=msgDiv.querySelector('.msg-text');
+    const reader=res.body.getReader(),decoder=new TextDecoder();let fullText='';
+    while(true){const{done,value}=await reader.read();if(done)break;
+      const lines=decoder.decode(value).split('\n').filter(l=>l.startsWith('data: ')&&l!=='data: [DONE]');
+      for(const line of lines){try{const d=JSON.parse(line.slice(6));fullText+=(d.choices?.[0]?.delta?.content||'');textEl.textContent=fullText.replace(/#{1,6}\s+/g,'').replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/`{1,3}[^`]*`{1,3}/g,'').replace(/\|[^\n]+\|/g,'').replace(/^[-*+]\s+/gm,'').replace(/^>\s+/gm,'').trim();c.scrollTop=c.scrollHeight;}catch{}}
+    }
+    conversation.push({role:'assistant',content:fullText});saveTranscript();
+    document.getElementById('stop-btn').style.display='none';document.getElementById('send-btn').style.display='block';currentAbort=null;
+  }catch(err){
+    typingEl.style.display='none';document.getElementById('stop-btn').style.display='none';document.getElementById('send-btn').style.display='block';currentAbort=null;
+    if(err.name!=='AbortError'){addSystemMsg('could not reach ollama — is it running?');conversation.pop();}
+  }
+}
+document.getElementById('chat-input').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+function stopGeneration(){if(currentAbort){currentAbort.abort();currentAbort=null;}document.getElementById('stop-btn').style.display='none';document.getElementById('send-btn').style.display='block';document.getElementById('typing-indicator').style.display='none';}
+
+async function saveTranscript(){
+  if(!sessionId||conversation.length===0)return;
+  await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:sessionId,transcript:conversation,project_id:activeProjectId||null,summary:''})});
+}
+async function loadLastSession(){
+  try{
+    let res=await fetch('/api/sessions/active');
+    if(!res.ok)res=await fetch('/api/sessions/latest');
+    if(!res.ok)return;
+    const data=await res.json();
+    if(!data||!data.transcript||data.transcript.length===0)return;
+    sessionId=data.id;conversation=data.transcript;
+    if(data.project_id)activeProjectId=parseInt(data.project_id)||null;
+    addSystemMsg('— previous session restored —');
+    for(const msg of conversation){
+      if(msg.role==='system')continue;
+      const content=typeof msg.content==='string'?msg.content:'[image]';
+      if(msg.role==='user')addChatMessage('user',content);
+      else if(msg.role==='assistant')addChatMessage('bingus',content);
+    }
+  }catch(e){console.error('restore failed:',e);}
+}
+async function newSession(){
+  if(conversation.length>0)await saveTranscript();
+  conversation=[];sessionId=Date.now().toString();
+  document.getElementById('chat-messages').innerHTML='';
+  addSystemMsg('new session started');
+}
+async function endSession(){
+  if(conversation.length===0){toast('nothing to end');return;}
+  const model=document.getElementById('model-select').value;
+  if(!model){toast('no model selected');return;}
+  addSystemMsg('generating session card...');
+  const endPrompt=`Based on this conversation, extract the most useful piece of knowledge or decision worth keeping. Output ONLY a JSON object, no other text, no markdown:\n{"title":"specific descriptive title (not 'conversation about X')","summary":"the actual useful insight, decision, or knowledge — not a description of what was talked about","key_points":["specific actionable or useful point","another if relevant"],"tags":["#tag1","#tag2"]}\n\nIf nothing genuinely worth keeping as a knowledge artifact: {}`;
+  try{
+    const res=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[...conversation,{role:'user',content:endPrompt}],stream:false})});
+    const data=await res.json();const raw=data.choices?.[0]?.message?.content||'{}';
+    let card=null;try{const m=raw.match(/\{[\s\S]*\}/);if(m){const p=JSON.parse(m[0]);if(p.title)card=p;}}catch{}
+    if(!card)addSystemMsg('session ended — no card generated');
+    else{
+      const colorClass=CARD_COLORS[allCards.length%CARD_COLORS.length];
+      const body=card.summary+(card.key_points?.length?'\n\n'+card.key_points.map(p=>'— '+p).join('\n'):'');
+      await fetch('/api/cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:card.title,body,tags:card.tags||[],session_id:sessionId,project_id:activeProjectId||null,source:'session',color:colorClass})});
+      await loadCards();addSystemMsg('session ended — card saved');toast('session card added');
+    }
+    const sr=await fetch(OLLAMA()+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[...conversation,{role:'user',content:'Summarise this conversation in one plain sentence.'}],stream:false})});
+    const sd=await sr.json();const summary=sd.choices?.[0]?.message?.content||'';
+    await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:sessionId,transcript:conversation,project_id:activeProjectId||null,summary})});
+    await extractMemories(model);await updateAboutMe(model);
+    conversation=[];sessionId=null;
+  }catch(err){addSystemMsg('could not reach ollama');}
+}
+
+async function extractMemories(model){
+  try{
+    const res=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[...conversation,{role:'user',content:'Extract at most 1 single fact about this person worth remembering long-term. Only if it is genuinely new and non-obvious. Output ONLY a JSON array or []. Format: [{"title":"short label","content":"the fact"}]. If nothing truly worth keeping, output [].'}],stream:false})});
+    const data=await res.json();const raw=data.choices?.[0]?.message?.content||'[]';
+    let items=[];try{const m=raw.match(/\[[\s\S]*\]/);if(m)items=JSON.parse(m[0]);}catch{}
+    for(const item of items)if(item.title&&item.content)await fetch('/api/memories',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:item.title,content:item.content,source:'bingus'})});
+    if(items.length>0){allMemories=await(await fetch('/api/memories')).json();toast(`bingus added ${items.length} memor${items.length>1?'ies':'y'}`);}
+  }catch{}
+}
+async function updateAboutMe(model){
+  if(conversation.length<4)return;
+  try{
+    const current=profile.about_me||'';
+    const convoText=conversation.filter(m=>m.role!=='system').map(m=>(m.role==='user'?'them: ':'you: ')+(typeof m.content==='string'?m.content:'[image]')).join(' / ');
+    const prompt='Known about this person: '+(current||'nothing yet')+'. Just learned: '+convoText+'. Rewrite their profile in 3-5 plain sentences covering how they think and what matters to them. No bullets, no dates, no labels.';
+    const res=await fetch(OLLAMA()+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],stream:false})});
+    const data=await res.json();const n=data.choices?.[0]?.message?.content||'';if(!n.trim())return;
+    await fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({about_me:n.trim()})});
+    profile.about_me=n.trim();
+    const pa=document.getElementById('panel-about');if(pa)pa.value=n.trim();
+  }catch{}
+}
+
+async function extractMemories(model){
+  try{
+    const res=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[...conversation,{role:'user',content:'Extract at most 1 single fact about this person worth remembering long-term. Only if it is genuinely new and non-obvious. Output ONLY a JSON array or []. Format: [{"title":"short label","content":"the fact"}]. If nothing truly worth keeping, output [].'}],stream:false})});
+    const data=await res.json();const raw=data.choices?.[0]?.message?.content||'[]';
+    let items=[];try{const m=raw.match(/\[[\s\S]*\]/);if(m)items=JSON.parse(m[0]);}catch{}
+    for(const item of items)if(item.title&&item.content)await fetch('/api/memories',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:item.title,content:item.content,source:'bingus'})});
+    if(items.length>0){allMemories=await(await fetch('/api/memories')).json();toast(`bingus added ${items.length} memor${items.length>1?'ies':'y'}`);}
+  }catch{}
+}
+
+
+// CHATS
+async function loadChatsPage(){const res=await fetch('/api/sessions');allSessions=await res.json();renderChatsList();}
+function filterChats(filter,btn){currentChatFilter=filter;document.querySelectorAll('#chats-filter .filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderChatsList();}
+function renderChatsList(){
+  const list=document.getElementById('chats-list');list.innerHTML='';
+  let sessions=allSessions;
+  if(currentChatFilter==='no-project')sessions=sessions.filter(s=>!s.project_id);
+  else if(currentChatFilter!=='all')sessions=sessions.filter(s=>s.project_id===currentChatFilter);
+  if(sessions.length===0){list.innerHTML='<span class="empty-state" style="grid-column:1/-1;">no sessions found</span>';return;}
+  const groups={};
+  for(const s of sessions){const d=fmtDateGroup(s.created_at);if(!groups[d])groups[d]=[];groups[d].push(s);}
+  for(const[date,items] of Object.entries(groups)){
+    const hdr=document.createElement('div');hdr.className='chat-date-group';hdr.textContent=date;list.appendChild(hdr);
+    for(const s of items){
+      const p=allProjects.find(x=>x.id===s.project_id);
+      const el=document.createElement('div');el.className='chat-entry';
+      el.innerHTML=`<div class="chat-entry-time">${fmtTime(s.created_at)}</div><div class="chat-entry-summary">${esc(s.summary||'no summary')}</div>${p?`<div class="chat-entry-project">[ ${esc(p.name)} ]</div>`:''}<div class="chat-entry-del" onclick="deleteSession('${s.id}');event.stopPropagation()">del</div>`;
+      el.onclick=()=>openChatModal(s.id);list.appendChild(el);
+    }
+  }
+}
+async function deleteSession(id){
+  await fetch('/api/sessions/'+id,{method:'DELETE'});
+  allSessions=allSessions.filter(s=>s.id!==id);
+  renderChatsList();toast('session deleted');
+}
+async function clearAllSessions(){
+  for(const s of allSessions)await fetch('/api/sessions/'+s.id,{method:'DELETE'});
+  allSessions=[];renderChatsList();toast('all sessions cleared');
+}
+async function openChatModal(id){
+  const s=await(await fetch(`/api/sessions/${id}`)).json();
+  document.getElementById('chat-modal-title').textContent=fmtDate(s.created_at);
+  const body=document.getElementById('chat-modal-body');body.innerHTML='';
+  for(const msg of(s.transcript||[])){
+    if(msg.role==='system')continue;
+    const div=document.createElement('div');div.className=`msg msg-${msg.role==='user'?'user':'bingus'}`;
+    const content=typeof msg.content==='string'?msg.content:'[image]';
+    div.innerHTML=`<div class="msg-meta">${msg.role==='user'?'you //':'bingus //'}</div><div class="msg-text">${esc(content)}</div>`;
+    body.appendChild(div);
+  }
+  openModal('chat-modal');
+}
+
+// JOURNAL
+async function loadJournalPage(){
+  const res=await fetch('/api/journal');allJournal=await res.json();
+  document.getElementById('journal-textarea').value='';
+  currentJournalId=null;
+  renderJournalCards();
+}
+function renderJournalCards(){
+  const grid=document.getElementById('journal-cards-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  if(allJournal.length===0){
+    grid.innerHTML='<span class="empty-state">no entries yet — write something above</span>';
+    return;
+  }
+  for(const e of allJournal){
+    const d=new Date(e.created_at);
+    const dateStr=DAYS[d.getDay()]+' '+d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();
+    const card=document.createElement('div');
+    card.className='journal-card';
+    card.innerHTML=`<div class="journal-card-inner">
+      <div class="journal-card-date">
+        <span>${dateStr}</span>
+        <span style="font-size:8px;opacity:0.5;">${pad(d.getHours())}:${pad(d.getMinutes())}</span>
+      </div>
+      <div class="journal-card-body collapsed" id="jbody-${e.id}">${esc(e.content||'')}</div>
+      ${e.bingus_thinks?`<div class="journal-card-thinks visible"><div class="journal-card-thinks-label">bingus thinks //</div>${esc(e.bingus_thinks)}</div>`:`<div class="journal-card-thinks" id="jthinks-${e.id}"><div class="journal-card-thinks-label">bingus thinks //</div><span id="jthinks-text-${e.id}"></span></div>`}
+      <div class="journal-card-actions">
+        <button class="btn small" onclick="toggleJournalCard(${e.id});event.stopPropagation()">expand</button>
+        <button class="btn small" onclick="bingusThinkCard(${e.id});event.stopPropagation()">bingus thinks</button>
+        <button class="btn small danger" onclick="deleteJournalCard(${e.id});event.stopPropagation()">delete</button>
+      </div>
+    </div>`;
+    grid.appendChild(card);
+  }
+}
+function toggleJournalCard(id){
+  const body=document.getElementById('jbody-'+id);
+  if(!body)return;
+  body.classList.toggle('collapsed');
+  const thinks=document.getElementById('jthinks-'+id);
+  if(thinks)thinks.classList.toggle('visible');
+}
+async function saveJournalEntry(){
+  const content=document.getElementById('journal-textarea').value.trim();
+  if(!content){toast('nothing to save');return;}
+  const res=await fetch('/api/journal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})});
+  const e=await res.json();
+  allJournal.unshift(e);
+  document.getElementById('journal-textarea').value='';
+  renderJournalCards();
+  toast('entry saved');
+}
+async function bingusThinkCard(id){
+  const entry=allJournal.find(e=>e.id===id);
+  if(!entry||!entry.content.trim()){toast('nothing to think about');return;}
+  if(entry.bingus_thinks){
+    const el=document.getElementById('jthinks-'+id);
+    if(el){el.classList.add('visible');el.querySelector('span').textContent=entry.bingus_thinks;}
+    return;
+  }
+  const model=document.getElementById('model-select').value;
+  toast('bingus is thinking...');
+  try{
+    const prompt='Read this journal entry. What is the one thing this person is not saying directly? One sentence. Not a summary. Not advice. Something worth noticing.\n\n'+entry.content;
+    const res=await fetch(OLLAMA()+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],stream:false})});
+    const data=await res.json();const thinks=data.choices?.[0]?.message?.content||'';
+    await fetch('/api/journal/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({bingus_thinks:thinks})});
+    const idx=allJournal.findIndex(e=>e.id===id);if(idx>=0)allJournal[idx].bingus_thinks=thinks;
+    const el=document.getElementById('jthinks-'+id);
+    if(el){el.classList.add('visible');el.querySelector('span').textContent=thinks;}
+    toast('done');
+  }catch{toast('could not reach ollama');}
+}
+async function deleteJournalCard(id){
+  await fetch('/api/journal/'+id,{method:'DELETE'});
+  allJournal=allJournal.filter(e=>e.id!==id);
+  renderJournalCards();
+  toast('deleted');
+}
+// Keep these as stubs so nothing breaks
+function newJournalEntry(){}
+function generateBingusThinks(){if(currentJournalId)bingusThinkCard(currentJournalId);}
+function deleteJournalEntry(){if(currentJournalId)deleteJournalCard(currentJournalId);}
+
+// SETTINGS
+function loadSettingsPage(){
+  document.getElementById('setting-ollama-url').value=profile.ollama_url||'http://localhost:11434';
+  const cs=document.getElementById('setting-context-strategy');if(cs)cs.value=profile.context_strategy||'tags';
+  renderMemories();renderContextList();
+}
+async function saveSettings(){
+  const url=document.getElementById('setting-ollama-url').value.trim()||'http://localhost:11434';
+  const cs=document.getElementById('setting-context-strategy')?.value||'tags';
+  await fetch('/api/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({ollama_url:url,context_strategy:cs})});
+  profile.ollama_url=url;profile.context_strategy=cs;toast('settings saved');
+}
+function toggleTinker(){tinkerVisible=!tinkerVisible;document.getElementById('tinker-section').classList.toggle('visible',tinkerVisible);document.getElementById('tinker-toggle').textContent=tinkerVisible?'disable':'enable';}
+
+async function loadMemories(){const res=await fetch('/api/memories');allMemories=await res.json();}
+async function loadMemoriesPage(){await loadMemories();renderMemoriesPage();}
+function renderMemoriesPage(){
+  const el=document.getElementById('memories-page-list');if(!el)return;el.innerHTML='';
+  if(allMemories.length===0){el.innerHTML='<span class="empty-state" style="grid-column:1/-1;">no memories yet</span>';return;}
+  allMemories.forEach(m=>{
+    const colorClass=CARD_COLORS[m.id%CARD_COLORS.length];
+    const div=document.createElement('div');div.className='feed-card '+colorClass;
+    div.style.cursor='default';
+    div.innerHTML=`<div class="feed-card-inner"><div class="feed-card-title">${esc(m.title)}</div><div class="feed-card-body" style="display:block;margin-bottom:8px;">${esc(m.content)}</div><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:8px;opacity:0.5;">${esc(m.source||'user')} · ${m.created_at?m.created_at.split(' ')[0]:''}</span><button class="btn small danger" onclick="deleteMemoryPage(${m.id})">del</button></div></div>`;
+    el.appendChild(div);
+  });
+}
+function openMemoryModal(){document.getElementById('mem-title').value='';document.getElementById('mem-content').value='';openModal('memory-modal');}
+async function saveMemory(){
+  const title=document.getElementById('mem-title').value.trim();
+  const content=document.getElementById('mem-content').value.trim();
+  if(!title||!content){toast('need title and content');return;}
+  await fetch('/api/memories',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,content,source:'user'})});
+  await loadMemories();renderMemoriesPage();closeModal('memory-modal');toast('memory saved');
+}
+async function deleteMemoryPage(id){await fetch(`/api/memories/${id}`,{method:'DELETE'});allMemories=allMemories.filter(m=>m.id!==id);renderMemoriesPage();toast('deleted');}
+function renderMemories(){
+  const el=document.getElementById('memories-list');if(!el)return;el.innerHTML='';
+  if(allMemories.length===0){el.innerHTML='<span class="empty-state">no memories yet</span>';return;}
+  allMemories.forEach(m=>{
+    const div=document.createElement('div');div.className='memory-item';
+    div.innerHTML=`<div class="item-title">${esc(m.title)}<button class="btn small danger" onclick="deleteMemory(${m.id})">del</button></div><div class="item-content">${esc(m.content)}</div><div class="item-meta">source: ${esc(m.source||'user')}</div>`;
+    el.appendChild(div);
+  });
+}
+async function deleteMemory(id){await fetch(`/api/memories/${id}`,{method:'DELETE'});allMemories=allMemories.filter(m=>m.id!==id);renderMemories();toast('deleted');}
+
+async function loadContext(){const res=await fetch('/api/context');allContext=await res.json();}
+function renderContextList(){
+  const el=document.getElementById('context-list');if(!el)return;el.innerHTML='';
+  if(allContext.length===0){el.innerHTML='<span class="empty-state">no global context yet</span>';return;}
+  allContext.forEach(c=>{
+    const div=document.createElement('div');div.className='ctx-item';
+    div.innerHTML=`<div class="item-title">${esc(c.title)}<div style="display:flex;gap:4px;"><button class="btn small" onclick="openContextModal(${c.id})">edit</button><button class="btn small danger" onclick="deleteContext(${c.id})">del</button></div></div><div class="item-content">${esc(c.content.slice(0,120))}${c.content.length>120?'...':''}</div>`;
+    el.appendChild(div);
+  });
+}
+function openContextModal(id){
+  document.getElementById('ctx-id').value=id||'';
+  document.getElementById('ctx-title').value='';document.getElementById('ctx-content').value='';
+  if(id){const c=allContext.find(x=>x.id===id);if(c){document.getElementById('ctx-title').value=c.title;document.getElementById('ctx-content').value=c.content;}}
+  openModal('context-modal');
+}
+async function saveContext(){
+  const id=document.getElementById('ctx-id').value;
+  const title=document.getElementById('ctx-title').value.trim(),content=document.getElementById('ctx-content').value.trim();
+  if(!title||!content){toast('need title and content');return;}
+  if(id)await fetch(`/api/context/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,content})});
+  else await fetch('/api/context',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,content})});
+  await loadContext();renderContextList();closeModal('context-modal');toast('saved');
+}
+async function deleteContext(id){await fetch(`/api/context/${id}`,{method:'DELETE'});allContext=allContext.filter(c=>c.id!==id);renderContextList();toast('deleted');}
+
+async function exportModelfile(){
+  const about=profile.about_me||'';
+  const memories=allMemories.map(m=>`- [${m.title}]: ${m.content}`).join('\n');
+  const ctx=allContext.map(c=>`[${c.title}]\n${c.content}`).join('\n\n');
+  const content=`FROM mistral:7b\n\nPARAMETER temperature 0.85\nPARAMETER top_p 0.9\nPARAMETER repeat_penalty 1.1\n\nSYSTEM """\nyou are bingus. a thinking partner, not an assistant.\n\nyour job is to help the user think. push back when something sounds unexamined. offer angles not considered. dry, direct, genuinely interested. don't pad responses.\n\n${about?'about the user:\n'+about+'\n\n':''}${memories?'memories:\n'+memories+'\n\n':''}${ctx?'context:\n'+ctx+'\n\n':''}when the user says END SESSION, output ONLY:\n{"title":"...","summary":"...","key_points":["..."],"tags":["#tag1"]}\nif nothing worth keeping: {}\n"""`;
+  const blob=new Blob([content],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bingus.modelfile';a.click();
+  toast('modelfile exported');
+}
+
+// AUTO-SAVE — save transcript every 30 seconds if conversation is active
+setInterval(async()=>{
+  if(sessionId&&conversation.length>0)await saveTranscript();
+},30000);
+
+// SAVE ON CLOSE — when tab/window closes, save transcript
+window.addEventListener('beforeunload',()=>{
+  if(sessionId&&conversation.length>0){
+    // sync save using sendBeacon so it fires even on close
+    const data=JSON.stringify({id:sessionId,transcript:conversation,project_id:activeProjectId||null,summary:''});
+    navigator.sendBeacon('/api/sessions',new Blob([data],{type:'application/json'}));
+  }
+});
+
+async function init(){
+  await loadProfile();
+  await loadModels();
+  await loadProjects();
+  await loadMemories();
+  await loadContext();
+  await loadCaptures();
+  await loadCards();
+  await loadLastSession();
+  if(conversation.length===0)addSystemMsg('ready — start talking to begin a session');
+}
+init();
+</script>
+</body>
+</html>

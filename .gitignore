@@ -1,0 +1,7 @@
+node_modules/
+bingus.db
+bingus.db-shm
+bingus.db-wal
+public/uploads/
+*.zip
+.env
