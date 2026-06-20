@@ -1018,7 +1018,8 @@ async function endProjectSession(){
   if(projectConversation.length===0){toast('nothing to end');return;}
   const model=document.getElementById('model-select').value;
   addProjectSystemMsg('generating session card...');
-  const endPrompt=`Based on this conversation, extract the most useful piece of knowledge or decision worth keeping. Output ONLY a JSON object, no other text, no markdown:\n{"title":"specific descriptive title (not 'conversation about X')","summary":"the actual useful insight, decision, or knowledge — not a description of what was talked about","key_points":["specific actionable or useful point","another if relevant"],"tags":["#tag1","#tag2"]}\n\nIf nothing genuinely worth keeping as a knowledge artifact: {}`;
+  const endPrompt=`Summarize this conversation as a knowledge card. Reply with ONLY this JSON, nothing else:
+{"title":"short specific title","summary":"2-3 sentences of what was discussed or decided","key_points":["main point","another point"],"tags":["#topic"]}`;
   try{
     const res=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[...projectConversation,{role:'user',content:endPrompt}],stream:false})});
     const data=await res.json();const raw=data.choices?.[0]?.message?.content||'{}';
@@ -1233,13 +1234,20 @@ async function endSession(){
   const model=document.getElementById('model-select').value;
   if(!model){toast('no model selected');return;}
   addSystemMsg('generating session card...');
-  const endPrompt=`Based on this conversation, extract the most useful piece of knowledge or decision worth keeping. Output ONLY a JSON object, no other text, no markdown:\n{"title":"specific descriptive title (not 'conversation about X')","summary":"the actual useful insight, decision, or knowledge — not a description of what was talked about","key_points":["specific actionable or useful point","another if relevant"],"tags":["#tag1","#tag2"]}\n\nIf nothing genuinely worth keeping as a knowledge artifact: {}`;
+  const endPrompt=`Summarize this conversation as a knowledge card. Reply with ONLY this JSON, nothing else:
+{"title":"short specific title","summary":"2-3 sentences of what was discussed or decided","key_points":["main point","another point"],"tags":["#topic"]}`;
   try{
     const res=await fetch(`${OLLAMA()}/v1/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages:[...conversation,{role:'user',content:endPrompt}],stream:false})});
     const data=await res.json();const raw=data.choices?.[0]?.message?.content||'{}';
     let card=null;try{const m=raw.match(/\{[\s\S]*\}/);if(m){const p=JSON.parse(m[0]);if(p.title)card=p;}}catch{}
-    if(!card)addSystemMsg('session ended — no card generated');
-    else{
+    if(!card){
+      // fallback — couldn't parse JSON, make a card from raw response
+      const fallbackTitle=conversation.filter(m=>m.role==='user').slice(-1)[0]?.content?.slice(0,60)||'session '+new Date().toLocaleDateString();
+      const fallbackBody=raw.replace(/[{}"\[\]]/g,'').replace(/\n+/g,'\n').trim().slice(0,500);
+      const colorClass=CARD_COLORS[allCards.length%CARD_COLORS.length];
+      await fetch('/api/cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:fallbackTitle,body:fallbackBody,tags:[],session_id:sessionId,project_id:activeProjectId||null,source:'session',color:colorClass})});
+      await loadCards();addSystemMsg('session ended — card saved');toast('session card added');
+    } else {
       const colorClass=CARD_COLORS[allCards.length%CARD_COLORS.length];
       const body=card.summary+(card.key_points?.length?'\n\n'+card.key_points.map(p=>'— '+p).join('\n'):'');
       await fetch('/api/cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:card.title,body,tags:card.tags||[],session_id:sessionId,project_id:activeProjectId||null,source:'session',color:colorClass})});
