@@ -18,7 +18,7 @@ fi
 
 # clone
 INSTALL_DIR="$HOME/scratchboard"
-git clone https://github.com/YOUR_USERNAME/scratchboard "$INSTALL_DIR"
+git clone https://github.com/neuromancer-dp/scratchboard "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 npm install
 
